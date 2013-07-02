@@ -82,7 +82,7 @@ function trimci{S <: Real}(x::Vector{S}; tr::Real=0.2, alpha::Real=0.05, nullval
     return output
 end
 #trimci{S <: Real}(x::DataVector{S}; tr=0.2, alpha=0.05, nullvalue=0, method=true)=
-    trimci(removeNA(x), tr=tr, alpha=alpha, nullvalue=nullvalue, method=method)
+ #   trimci(removeNA(x), tr=tr, alpha=alpha, nullvalue=nullvalue, method=method)
 
 
 #Stein's method
