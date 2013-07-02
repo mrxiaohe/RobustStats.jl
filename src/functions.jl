@@ -1346,7 +1346,7 @@ function yuend{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}; tr::Real=0.2, a
     output
 end
 
-function t1way{S <: Real}
+#function t1way{S <: Real}
 
 
 
