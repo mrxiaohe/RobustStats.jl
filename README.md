@@ -437,7 +437,7 @@ Two examples are shown below to demonstrate the two ways of specifying data:
     julia> m3 = sort(randn(30));
     julia> group = rep(1:3, [8,12,10]);   #Unequal sample sizes: n1 = 8, n2 = 12, n3 = 10
     
-    julia> t1way3(m3, group)
+    julia> t1way(m3, group)
     Heteroscedastic one-way ANOVA for trimmed means
     using a generalization of Welch's method.
 
