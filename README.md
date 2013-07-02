@@ -408,3 +408,6 @@ Compare the trimmed means of two dependent random variables using the data in x 
     p value:              0.006336
 
 
+###Coming soon
+####t1way()
+
