@@ -82,11 +82,7 @@ function trimci{S <: Real}(x::Vector{S}; tr::Real=0.2, alpha::Real=0.05, nullval
     return output
 end
 #trimci{S <: Real}(x::DataVector{S}; tr=0.2, alpha=0.05, nullvalue=0, method=true)=
-<<<<<<< HEAD
-  #  trimci(removeNA(x), tr=tr, alpha=alpha, nullvalue=nullvalue, method=method)
-=======
  #   trimci(removeNA(x), tr=tr, alpha=alpha, nullvalue=nullvalue, method=method)
->>>>>>> 64c0f0ed95fea1af76e68b326870418d2bee7455
 
 
 #Stein's method
@@ -1346,7 +1342,21 @@ function yuend{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}; tr::Real=0.2, a
     output
 end
 
-function t1way{S <: Real}
+#  A heteroscedastic one-way ANOVA for trimmed means using a generalization of Welch's method.
+
+function t1way{S <: Real}(x::Array{S, 2}; tr::Real=0.2, method::Bool=true)
+    n = size(x, 1)
+    g = [1:size(x, 2)]
+    grp = rep(g, rep(n, size(x, 2)))
+    x = x[:]
+    t1waycore(x, grp, tr, method)
+end
+
+function t1way{S <: Real}(x::Vector{S}, grp::Vector; tr::Real=0.2, method::Bool=true)
+    g = unique(grp)
+    grpcopy = [find(g.==grp[i])[1] for i=1:length(grp)]
+    t1waycore(x, grpcopy, tr, method)
+end
 
 
 
