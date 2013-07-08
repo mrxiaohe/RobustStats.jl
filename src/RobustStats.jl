@@ -1,11 +1,11 @@
-#using DataFrames
-#using Rmath
-#using Distributions
-#using Stats
-#using GLM
-#using Winston
+using DataFrames
+using Rmath
+using Distributions
+using Stats
+using GLM
+using Winston
 
-#module robust
+module robust
 using DataFrames
 using Rmath
 using Winston
@@ -67,6 +67,6 @@ include("utilis.jl")
 include("show.jl")
 include("functions.jl")
 include("data.jl")
-#end
+end
 
 
