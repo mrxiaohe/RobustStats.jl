@@ -1357,18 +1357,3 @@ function t1way{S <: Real}(x::Vector{S}, grp::Vector; tr::Real=0.2, method::Bool=
     grpcopy = [find(g.==grp[i])[1] for i=1:length(grp)]
     t1waycore(x, grpcopy, tr, method)
 end
-
-
-
-# Data=[-1.0915999  0.7010442  0.2540099 -1.1499019  1.5375046  1.5362423 -1.2846310  1.1551006 -0.1107871  0.1731488  0.1824683 -0.9044951  0.9024446 -1.1056716 -0.3281121]
-
-
-
-
-
-
-
-
-
-
-
