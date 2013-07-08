@@ -5,7 +5,7 @@ using Stats
 using GLM
 using Winston
 
-module robust
+module RobustStats
 using DataFrames
 using Rmath
 using Winston
