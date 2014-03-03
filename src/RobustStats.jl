@@ -5,7 +5,7 @@ using GLM
 using Winston
 using DataArrays
 
-module robust
+module RobustMethod
 using DataFrames
 using Rmath
 using Winston
