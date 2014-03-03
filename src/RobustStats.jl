@@ -3,13 +3,15 @@ using Rmath
 using Distributions
 using GLM
 using Winston
+using DataArrays
 
-module RobustStats
+module robust
 using DataFrames
 using Rmath
 using Winston
 using Distributions
 using GLM
+using DataArrays
 import Base.show
 import DataFrames.complete_cases
 import DataFrames.deleterows!
