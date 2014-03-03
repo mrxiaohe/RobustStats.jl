@@ -1357,3 +1357,190 @@ function t1way{S <: Real}(x::Vector{S}, grp::Vector; tr::Real=0.2, method::Bool=
     grpcopy = [find(g.==grp[i])[1] for i=1:length(grp)]
     t1waycore(x, grpcopy, tr, method)
 end
+
+function pbos{S <: Real}(x::Vector{S}; beta::Real=0.2)
+    temp    = sort( abs( x - median(x) ))
+    nval    = length( x )
+    omhatid::Integer = floor( (1 - beta)*nval )
+    omhatx  = temp[ omhatid ] 
+    psi     = ( x - median(x) )./ omhatx
+    i1      = length(psi[ psi .< -1 ])
+    i2      = length(psi[ psi .> 1 ])
+    sx      = 0.0
+    [ sx += psi[i] < -1 ? 0 : [ psi[i] > 1 ? 0 : x[i] ]  for i=1:nval ]
+    return ( sx  + omhatx * (i2 - i1))/(nval - i1 - i2)
+end
+
+
+#Compute the percentage bend correlation between x and y
+#beta is the bending constant for omega sub N.
+function pbcor{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}; beta::Real=0.2)
+    nval = length(x)
+    if length(y) != nval
+        error("x and y do not agree in length.")
+    end
+    temp    = sort( abs( x - median(x) ))
+    omhatid::Integer = floor( (1 - beta)*nval )
+    omhatx  = temp[ omhatid ] 
+    temp    = sort( abs( y - median(y) ))
+    omhaty  = temp[ omhatid ]
+    a       = (x .- pbos(x, beta=beta) )./omhatx
+    b       = (y .- pbos(y, beta=beta) )./omhaty
+    for i = 1:nval
+        if a[i] < -1
+            a[i] = -1
+        elseif a[i] > 1
+            a[i] = 1
+        end
+        if b[i] < -1
+            b[i] = -1
+        elseif b[i] > 1
+            b[i] = 1
+        end
+    end
+    Pbcor   = sum( a.*b )/sqrt(sum( a.*a ) * sum( b.*b ))
+    test    = Pbcor*sqrt( ( nval - 2 )/( 1 - Pbcor*Pbcor ) )
+    sig     = 2*( 1 - Rmath.pt(abs(test), nval-2))
+
+    METHOD=nothing
+
+    output = testOutput()
+    output.method = METHOD
+    output.p = sig
+    output.estimate = Pbcor
+    output.statistic = test
+    output.n = nval
+    output.df = nval - 2
+    output
+end
+
+function outer{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}, f::Function)
+    nx      = length(x)
+    ny      = length(y)
+    output  = zeros(nx, ny)
+    for i = 1:ny
+        for j = 1:nx
+            output[j, i] = f(x[j], y[i])
+        end
+    end
+    return output
+end
+
+function hd{S <: Real}(x::Vector{S}; q::Real=0.5)
+    #Compute the Theil-Sen regression estimator.
+    # Only a single predictor is allowed in this version
+    n    = length(x)
+    m1   = ( n + 1 )*q
+    m2   = ( n + 1 )*(1 - q)
+    vec1 = [1:n]./n
+    vec2 = ([1:n] - 1)./n
+    w    = Rmath.pbeta( vec1, m1, m2 ) - Rmath.pbeta( vec2,  m1, m2 )
+    return sum( w.*sort(x) )
+end
+
+function tsp1reg{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}, HD::Bool)
+    order = sortperm( x )
+    xsort = x[ order ]
+    ysort = y[ order ]
+    vec1  = outer( ysort, ysort, - )
+    vec2  = outer( xsort, xsort, - )
+    v1    = vec1[ vec2 .> 0 ]
+    v2    = vec2[ vec2 .> 0 ]
+    b1    = median!( v1./v2 )
+    b0    = 0.0
+    if !HD
+        b0 = median( y ) - b1 * median( x )
+    else
+        b0 = hd( y ) - b1*hd( x )
+    end
+    return [b0, b1]
+end
+
+function tsreg_coef(mf::ModelFrame, HD::Bool, iter::Integer)
+    y     = vector( model_response( mf ) )
+    x     = ModelMatrix(mf).m[:,2:end]
+    np, n = size(x, 2), size(x, 1)
+    
+    #ONE PREDICTOR
+    if np == 1
+        coef = tsp1reg( x[:], y, false )
+    #    coef[1], coef[2] =  output.intercept, output.slope
+    #    res = output.res
+    else
+    #MULTIPLE PREDICTORS
+        coef_temp = zeros( np )
+        for p = 1:np
+            coef_temp[p] = tsp1reg( x[:,p], y, false )[2]
+        end
+        res = y - x*coef_temp 
+        if !HD
+            b0 = median!( res )
+        else 
+            b0 = hd( res )
+        end
+        #r = zeros( n )
+        #coef_old = coef_temp[:]
+        for i = 1:iter
+            for p = 1:np
+                r = y - x*coef_temp - b0 + coef_temp[p].*x[:,p]
+                coef_temp[p] = tsp1reg(x[:,p], r, false)[2]
+            end
+            if !HD
+                b0 = median!( y - x*coef_temp )
+            else
+                b0 = hd( y - x*coef_temp )
+            end
+            coef_old = coef_temp[:]
+        end
+        coef = [b0, coef_temp]
+    end
+    return coef 
+end
+
+
+
+function tsreg(formula::Expr, dataframe::AbstractDataFrame; varfun::Function=pbvar, corfun::Function=pbcor, HD::Bool=false, iter::Integer=10)
+#  Compute Theil-Sen regression estimator 
+#  Gauss-Seidel algorithm is used when there is more than one predictor
+    mf = ModelFrame( formula, dataframe )
+
+    #WILL ADD THE ABILITY TO DO MULTIPLE REGRESSION
+    output = regOut()
+    coef   = zeros(2)
+    res    = zeros(n)
+    if np == 1
+        output = tsp1reg( vector( mf[2] ), mr )
+        coef[1], coef[2] =  output.intercept, output.slope
+    else
+        stop("Only 1 predictor is allowed.")
+    end
+
+    res  = temp1.res
+    yhat = y - res
+
+    epow   = pbvar(yhat)/pbvar(y)
+    if epow >= 1
+        epow = sqrt( pbcor(yhat, y).estimate )
+    end
+    stre   = sqrt(epow)
+    output = DataFrame()
+    output["b0"] = temp1.intercept
+    output["b1"] = temp1.slope
+    output["strength of assoc."] = stre
+    output["explanatory power"]  = epow
+
+    if np == 1
+        lm_coef = coef(lm( formula, dataframe ))
+        p     = FramedPlot()
+        pts   = Points( vector(mf[2]), mr , "type", "dot")
+        s1    = Slope( lm_coef[2], (0, lm_coef[1]), "type", "solid", "color", "blue")
+        s2    = Slope( temp1.slope, (0, temp1.intercept), "type", "solid", "color", "red")
+        add(p, pts, s1, s2)
+        Winston.display(p)
+    end
+    output
+end
+
+
+#function DataFrame.describe(x::regOut)
+
