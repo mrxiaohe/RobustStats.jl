@@ -2,6 +2,7 @@ using DataFrames
 using Rmath
 using Distributions
 using GLM
+using StatsBase
 using Winston
 using DataArrays
 
@@ -10,6 +11,7 @@ using DataFrames
 using Rmath
 using Winston
 using Distributions
+using StatsBase
 using GLM
 using DataArrays
 import Base.show
