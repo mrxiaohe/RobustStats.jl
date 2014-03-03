@@ -1,7 +1,6 @@
 using DataFrames
 using Rmath
 using Distributions
-using Stats
 using GLM
 using Winston
 
@@ -11,7 +10,6 @@ using Rmath
 using Winston
 using Distributions
 using GLM
-using Stats
 import Base.show
 import DataFrames.complete_cases
 import DataFrames.deleterows!
