@@ -449,5 +449,3 @@ Two examples are shown below to demonstrate the two ways of specifying data:
 
 
 
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/mrxiaohe/robuststats.jl/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
