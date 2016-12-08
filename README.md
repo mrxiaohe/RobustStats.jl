@@ -2,6 +2,8 @@ RobustStats
 ==============
 
 
+[![Build Status](https://travis-ci.org/maximsch2/RobustStats.jl.svg?branch=master)](https://travis-ci.org/maximsch2/RobustStats.jl)
+
 Most functions in this file are robust statistical methods based on the R package WRS ([R-Forge repository](https://r-forge.r-project.org/projects/wrs/)) by [Rand Wilcox](http://dornsife.usc.edu/cf/labs/wilcox/wilcox-faculty-display.cfm). Only a handful of functions are included at this point. More will be added soon.
 
 
