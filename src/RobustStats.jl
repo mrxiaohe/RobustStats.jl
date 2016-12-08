@@ -1,12 +1,6 @@
-using DataFrames
-using Rmath
-using Distributions
-using GLM
-using StatsBase
-using Winston
-using DataArrays
-
 module RobustStats
+using Compat
+
 using DataFrames
 using Rmath
 using Winston

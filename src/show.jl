@@ -15,9 +15,9 @@ function show(io::IO, object::testOutput)
     if object.df != nothing
             @printf(" Degrees of freedom:  ")
         for i = 1:length(object.df)
-            if iseltype(object.df[i], Integer)
+            if isa(object.df[i], Integer)
                 @printf(" %d  ", object.df[i])
-            elseif iseltype(object.df, FloatingPoint)
+            elseif isa(object.df, Number)
                 @printf("% .2f  ", object.df[i])
             end
         end
@@ -44,7 +44,7 @@ function show(io::IO, object::testOutput)
         @printf(" Critical value:      % .6f\n", object.crit)
     end
     if object.ci != nothing
-        if iseltype(object.ci, Integer)
+        if isa(object.ci, Integer)
             @printf(" Confidence interval: % d      % d\n", object.ci[1], object.ci[2])
         else 
             @printf(" Confidence interval: % .6f      % .6f\n", object.ci[1], object.ci[2])
@@ -62,7 +62,7 @@ function show(io::IO, object::testOutput)
 end    
 
 type binomciOutput
-    phat::FloatingPoint
+    phat::Number
     confint::Array
     n::Int
 end
@@ -87,7 +87,7 @@ function show(io::IO, object::outOutput)
     if length(object.outid) == 0 
         @printf("\n")
     else 
-        if iseltype(object.outval, Integer)
+        if isa(object.outval, Integer)
             for i = 1:length(object.outval)
                 if i < length(object.outval)
                     @printf("%d, ", object.outval[i])

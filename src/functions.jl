@@ -5,10 +5,10 @@ function tmean{S <: Real}(x::Vector{S}; tr::Real=0.2)
     elseif tr == 0
         return mean(x)
     elseif tr == .5
-        return median(x, checknan=false)
+        return median(x)
     else 
         n   = length(x)
-        lo  = floor(n*tr)+1
+        lo  = floor(Int64, n*tr)+1
         hi  = n+1-lo
         return mean(sort!(copy(x))[lo:hi])
     end
@@ -21,10 +21,10 @@ function tmean!{S <: Real}(x::Vector{S}; tr::Real=0.2)
     elseif tr == 0
         return mean(x)
     elseif tr == .5
-        return median!(x, checknan=false)
+        return median!(x)
     else 
         n   = length(x)
-        lo  = floor(n*tr)+1
+        lo  = floor(Int64, n*tr)+1
         hi  = n+1-lo
         return mean(sort!(x)[lo:hi])
     end
@@ -36,7 +36,7 @@ function winval{S <: Real}(x::Vector{S}; tr::Real=0.2)
     xcopy   = copy(x)
     n       = length(x)
     xcopy   = sort!(xcopy)
-    ibot    = floor(tr*n)+1
+    ibot    = floor(Int64, tr*n)+1
     itop    = n-ibot+1
     xbot, xtop = xcopy[ibot], xcopy[itop]
     return  [x[i]<=xbot?xbot:(x[i]>=xtop?xtop:x[i]) for i=1:n]
@@ -93,8 +93,8 @@ function stein1{S <: Real}(x::Vector{S}, delta::Real; alpha::Real=0.05, pow::Rea
     df       = n-1
     alpha    = !oneside?alpha/2:alpha
     d        = (delta/(Rmath.qt(pow, df)-Rmath.qt(alpha, df)))*(delta/(Rmath.qt(pow, df)-Rmath.qt(alpha, df)))
-    N        = max([n, floor(variance/d)+1])
-    return integer(N)
+    N        = max(n, floor(Int64, variance/d)+1)
+    return N
 end
 #stein1{S <: Real}(x::DataVector{S}, delta::Real; alpha::Real=0.05, pow::Real=0.8, oneside::Bool=false, n=nothing, variance=nothing)=
  #   stein1(removeNA(x), delta, alpha=alpha, pow=pow, oneside=oneside, n=n, variance=variance)
@@ -127,7 +127,7 @@ end
 #Ideal fourths
 function idealf{S <: Real}(x::Vector{S}; method::Bool=true)
     n       = length(x)
-    j       = integer(floor(n/4+5/12))
+    j       = integer(floor(Int64, n/4+5/12))
     y       = sort(x)
     g       = n/4-j+5/12
     k       = n-j+1
@@ -144,7 +144,7 @@ function pbvar{S <: Real}(x::Vector{S}; beta::Real=0.2)
     med     = median(x, checknan=false)
     w       = [abs(x[i]-med) for i=1:n]
     w       = sort!(w)
-    m       = floor((1-beta).*n+0.5)
+    m       = floor(Int64, (1-beta).*n+0.5)
     z       = 0.0
     omega   = w[m]
     counter = 0
@@ -565,12 +565,12 @@ function stein1_tr{S <: Real}(x::Vector{S}, del::Real; alpha::Real=0.05, pow::Re
         error("Argument tr must be between 0 and .5")
     end
     n =length(x)
-    g::Int    = floor(tr*n)
+    g::Int    = floor(Int64, tr*n)
     df::Int   = n-2*g-1
     t1        = Rmath.qt(pow, df)
     t2        = Rmath.qt(alpha./2, df)
     dv        = (del/(t1-t2))*(del/(t1-t2))
-    nvec::Int = floor(trimse(x, tr=tr)./dv)+1
+    nvec::Int = floor(Int64, trimse(x, tr=tr)./dv)+1
     n > nvec ? n : nvec
 end
 
@@ -587,7 +587,7 @@ function stein1_tr{S <: Real}(x::Array{S, 2}, del::Real; alpha::Real=0.05, pow::
         ic    = 0
         ntest::Integer = (J*J-J)/2
         n     = size(x, 1)
-        g::Integer = floor(tr*n)
+        g::Integer = floor(Int64, tr*n)
         df    = n-2g-1
         tdiff = Rmath.qt(pow, df)-Rmath.qt(alpha/2.0/ntest, df)
         dv    = (del/tdiff)*(del/tdiff)
@@ -596,13 +596,13 @@ function stein1_tr{S <: Real}(x::Array{S, 2}, del::Real; alpha::Real=0.05, pow::
             for i = 1:J
                 for j = 1:J
                     if i < j
-                        N[ic+=1] = floor(trimse(x[:,i]-x[:,j], tr=tr)/dv)+1
+                        N[ic+=1] = floor(Int64, trimse(x[:,i]-x[:,j], tr=tr)/dv)+1
                     end
                 end
             end
             return max(vcat(N, n))
         elseif ntest == 1
-            return int(floor(trimse(x[:,1], tr=tr)/dv)+1)
+            return floor(Int64, trimse(x[:,1], tr=tr)/dv)+1
         end
     end
 end
@@ -626,8 +626,8 @@ function stein2_tr{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}; alpha::Real
     return output
 end
 
-function stein2_tr{S <: Real, T <: Real}(x::Array{S}, y::Array{T}; alpha::Real=0.05, tr::Real=.2, method::Bool=true)
-    if tr <0 || tr >= .5
+function stein2_tr(x::Array, y::Array; alpha::Real=0.05, tr::Real=.2, method::Bool=true)
+    if tr < 0 || tr >= .5
         error("Argument tr must be between 0 and .5")
     end
     if size(x, 2) != size(y, 2) 
@@ -643,7 +643,7 @@ function stein2_tr{S <: Real, T <: Real}(x::Array{S}, y::Array{T}; alpha::Real=0
         ntest::Int = (J.*J-J)./2
         m       = vcat(x, y)
         nm      = size(m, 1) 
-        test=DataFrame({Integer, Integer, Float64}, ["grp1", "grp2", "test_stat"], ntest)
+        test=DataFrame([Integer, Integer, Float64], ["grp1", "grp2", "test_stat"], ntest)
         if ntest > 1
             for i=1:J
                 for j=1:J
@@ -758,8 +758,8 @@ end
 #
 #nv=null value when  computing a p-value
 
-function onesampb{S <: Real}(x::Vector{S}; est::Function=onestep, alpha::Real=0.05, nboot::Integer=2000, seed::Union(Int, Bool)=2, nv::Real=0)
-    if iseltype(seed, Int)
+function onesampb{S <: Real}(x::Vector{S}; est::Function=onestep, alpha::Real=0.05, nboot::Integer=2000, seed=2, nv::Real=0)
+    if isa(seed, Int)
         srand(seed)
     elseif seed
         srand(2)
@@ -822,8 +822,8 @@ end
 #Compute a bootstrap, .95 confidence interval for the
 #MOM-estimator of location based on Huber's Psi.
 #The default number of bootstrap samples is nboot=500
-function momci{S <: Real}(x::Vector{S}; bend::Real=2.24, alpha::Real=0.05, nboot::Integer=2000, seed::Union(Int, Bool)=2, method=true)
-    if iseltype(seed, Int)
+function momci{S <: Real}(x::Vector{S}; bend::Real=2.24, alpha::Real=0.05, nboot::Integer=2000, seed=2, method=true)
+    if isa(seed, Int)
         srand(seed)
     elseif seed
         srand(2)
@@ -891,10 +891,10 @@ end
 #  (When plotting bivariate data, rdplot uses fr=.6 by default.)
 
 function trimpb{S <: Real}(x::Vector{S}; tr::Real=0.2, alpha::Real=0.05, nboot::Integer=2000, 
-                win::Union(Bool, Real)=false, plotit::Bool=false, pop::Int=1, nullval::Real=0.0, 
-                xlab="X", ylab="Density", fr::Union(Nothing, Real)=nothing, seed::Union(Bool, Integer)=2, 
+                win=false, plotit::Bool=false, pop::Int=1, nullval::Real=0.0, 
+                xlab="X", ylab="Density", fr=nothing, seed=2, 
                 method::Bool=true)
-    if iseltype(win, Bool)
+    if isa(win, Bool)
         if win
             x=winval(x, tr=0.1)
         end
@@ -906,7 +906,7 @@ function trimpb{S <: Real}(x::Vector{S}; tr::Real=0.2, alpha::Real=0.05, nboot::
     crit=alpha/2.0
     icl=round(crit*nboot)+1
     icu=nboot-icl
-    if iseltype(seed, Bool)
+    if isa(seed, Bool)
         if seed
             srand(2)
         end
@@ -990,8 +990,8 @@ end
 #
 
 function trimcibt{S <: Real}(x::Vector{S}; tr::Real=0.2, alpha::Real=0.05, nboot::Integer=2000, side::Bool=true, 
-                             plotit::Bool=false, op::Integer=1, nullval::Real=0, seed::Union(Bool, Int)=2, method::Bool=true)
-    if iseltype(seed, Bool)
+                             plotit::Bool=false, op::Integer=1, nullval::Real=0, seed=2, method::Bool=true)
+    if isa(seed, Bool)
         if seed
             srand(2)
         end
@@ -1061,8 +1061,8 @@ end
 #   estimator est
 #   The default number of bootstrap samples is nboot=1000
 
-function bootse{S <: Real}(x::Vector{S}; nboot::Integer=1000, est::Function=median, seed::Union(Bool, Integer)=2)
-   if iseltype(seed, Bool)
+function bootse{S <: Real}(x::Vector{S}; nboot::Integer=1000, est::Function=median, seed=2)
+   if isa(seed, Bool)
         if seed
             srand(2)
         end
@@ -1085,17 +1085,12 @@ function bootse{S <: Real}(x::Vector{S}; nboot::Integer=1000, est::Function=medi
     return std(bvec)
 end
 
-#bootse{S <: Real}(x::DataVector{S}; nboot::Integer=1000, 
- #                 est::Function=median, seed::Union(Bool, Integer)=2)=
-  #                bootse(removeNA(x), nboot=nboot, est=est, seed=seed)
-
-
 #   Compute a .95 confidence interval for Pearson's correlation coefficient.
 #
 #   This function uses an adjusted percentile bootstrap method that
 #   gives good results when the error term is heteroscedastic.
-function pcorb{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}; seed::Union(Bool, Integer)=2, plotit::Bool=false)
-   if iseltype(seed, Bool)
+function pcorb{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}; seed=2, plotit::Bool=false)
+   if isa(seed, Bool)
         if seed
             srand(2)
         end
@@ -1136,8 +1131,6 @@ function pcorb{S <: Real, T <: Real}(x::Vector{S}, y::Vector{T}; seed::Union(Boo
     output.ci = [bvec[ilow], bvec[ihi]]
     output
 end
-#pcorb{S <: Real, T <: Real}(x::DataVector{S}, y::DataVector{T}; nboot::Integer=2000, seed::Union(Bool, Integer)=2)
-#= pcorb(removeNAVector{Int}, y::Vector{Float64}; nboot=2000, seed::Union(Bool, Int)=2)=
     
 
 
@@ -1153,7 +1146,7 @@ end
 #      With tr>0, a trimmed version of the test statistic is used.
 #
 function indt(x::AbstractArray, y::AbstractArray; flag::Int=1, nboot::Int=599, 
-              tr::Float64=0.0, seed::Union(Bool, Int)=2, method=true)
+              tr::Float64=0.0, seed=2, method=true)
     if ndims(x)==1
         x=reshape(x,length(x),1)
     end
@@ -1170,7 +1163,7 @@ function indt(x::AbstractArray, y::AbstractArray; flag::Int=1, nboot::Int=599,
     yhat=mean(y)
     res=zeros(n)
     [res[i]=y[i]-yhat for i=1:n]
-    if iseltype(seed, Bool)
+    if isa(seed, Bool)
         if seed
             srand(2)
         end
@@ -1222,8 +1215,8 @@ end
 
 
 function indirectTest{S <: Real, T <: Real, W <: Real}(dv::Vector{S}, iv::Vector{T}, m::Vector{W}; 
-            nboot::Integer=5000, alpha::Real=0.05, scale::Bool=false, seed::Union(Bool, Int)=2, plotit::Bool=false)
-    if iseltype(seed, Bool)
+            nboot::Integer=5000, alpha::Real=0.05, scale::Bool=false, seed=2, plotit::Bool=false)
+    if isa(seed, Bool)
         if seed
             srand(2)
         end
