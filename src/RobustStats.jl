@@ -3,11 +3,7 @@ using Compat
 
 using DataFrames
 using Rmath
-using Winston
-using Distributions
 using StatsBase
-using GLM
-using DataArrays
 import Base.show
 import DataFrames.complete_cases
 import DataFrames.deleterows!
