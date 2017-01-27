@@ -4,48 +4,48 @@ RobustStats
 
 [![Build Status](https://travis-ci.org/maximsch2/RobustStats.jl.svg?branch=master)](https://travis-ci.org/maximsch2/RobustStats.jl)
 
-Most functions in this file are robust statistical methods based on the R package WRS ([R-Forge repository](https://r-forge.r-project.org/projects/wrs/)) by [Rand Wilcox](http://dornsife.usc.edu/cf/labs/wilcox/wilcox-faculty-display.cfm). Only a handful of functions are included at this point. More will be added soon.
+Most functions in this file are robust statistical methods based on the R package WRS ([an R-Forge repository](https://r-forge.r-project.org/projects/wrs/)) by [Rand Wilcox](http://dornsife.usc.edu/cf/labs/wilcox/wilcox-faculty-display.cfm). Only a handful of functions are included at this point.
 
 
-In order to use the functions, `Rmath`, `Stats`, `Dataframes`, `Distributions`, and `Winston` are required. They can be installed by invoking `Pkg.add("packagename")`.
+This package requires `Compat`, `Rmath`, `Dataframes`, and `Distributions`. They can be installed automatically, or by invoking `Pkg.add("packagename")`.
 
 
 ##Examples
 
     #Set up a sample dataset:
-    x=[1.672064, 0.7876588, 0.317322, 0.9721646, 0.4004206, 1.665123, 3.059971, 0.09459603, 1.27424, 3.522148, 
+    x=[1.672064, 0.7876588, 0.317322, 0.9721646, 0.4004206, 1.665123, 3.059971, 0.09459603, 1.27424, 3.522148,
        0.8211308, 1.328767, 2.825956, 0.1102891, 0.06314285, 2.59152, 8.624108, 0.6516885, 5.770285, 0.5154299]
 
     julia> mean(x)     #the mean of this dataset
     1.853401259
-    
+
 ####1. `tmean`: trimmed mean
-    
+
     julia> tmean(x)            #20% trimming by default
     1.2921802666666669
-    
+
     julia> tmean(x, tr=0)      #no trimming; the same as the output of mean()
     1.853401259
-    
+
     julia> tmean(x, tr=0.3)    #30% trimming
     1.1466045875000002
-    
+
     julia> tmean(x, tr=0.5)    #50% trimming, which gives you the median of the dataset.
     1.1232023
-    
-    
+
+
 ####2. `winval`: winsorize data
-    
+
     julia> winval(x)           #20% winsorization; can be changed via the named argument `tr`.
     20-element Any Array:
-     1.67206 
+     1.67206
      0.787659
      0.400421
      0.972165
      ...
      0.651689
-     2.82596 
-     0.51543 
+     2.82596
+     0.51543
 
 
 ####3. `winmean`: winsorized mean
@@ -62,14 +62,14 @@ In order to use the functions, `Rmath`, `Stats`, `Dataframes`, `Distributions`, 
 
 ####5. `trimse`: estimated standard error of the gamma trimmed mean
 
-    julia> trimse(x)           #20% winsorization; can be changed via the named argument `tr`.       
+    julia> trimse(x)           #20% winsorization; can be changed via the named argument `tr`.
     0.3724280347984342
 
 
 ####6. `trimci`: 1-alpha confidence interval for the trimmed mean
 Can be used for paired groups if `x` consists of the difference scores of two paired groups.
-  
-    julia> trimci(x)                 #20% winsorization; can be changed via the named argument `tr`.       
+
+    julia> trimci(x)                 #20% winsorization; can be changed via the named argument `tr`.
     1-alpha confidence interval for the trimmed mean
 
     Degrees of freedom:   11
@@ -82,12 +82,12 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
 
 ####7. `stein1`: Stein's method
 
-    julia> stein1(x, 1)     
+    julia> stein1(x, 1)
     41
 
 
 ####8. `stein2`: the second stage of Stein's method.
- 
+
     julia> srand(1)         #set seed
     julia> x2=rnorm(21);    #suppose additional 21 data points were collected.
     julia> stein2(x, x2)
@@ -111,15 +111,15 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
 
     julia> pbvar(x)
     2.0009575278957623
-    
-    
+
+
 ####11. `bivar`: biweight midvariance
 
     julia> bivar(x)
     1.588527039652727
-    
-    
-####12. `tauloc`: tau measure of location 
+
+
+####12. `tauloc`: tau measure of location
 
 (see Yohai and Zamar (JASA, 83, 406-413))
 
@@ -127,7 +127,7 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
     1.2696674487629664
 
 
-####13. `tauvar`: the tau measure of scale 
+####13. `tauvar`: the tau measure of scale
 
 (see Yohai and Zamar (JASA, 1988, 83, 406-413) and  Maronna and Zamar (Technometrics, 2002, 44, 307-317))
 
@@ -135,19 +135,19 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
     1.5300804969271078
 
 
-####14. `outbox`: outlier detection 
+####14. `outbox`: outlier detection
 
 using a modified boxplot rule based on the ideal fourths; when the named argument `mbox` is set to `true`, a modification of the boxplot rule suggested by Carling (2000) is used
 
-    julia> outbox(x)     
-    Outlier detection method using 
+    julia> outbox(x)
+    Outlier detection method using
     the ideal-fourths based boxplot rule
 
-    Outlier ID:         17                                                        
+    Outlier ID:         17
     Outlier value:      8.62411
     Number of outliers: 1
     Non-outlier ID:     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20
-    
+
 
 ####15. `msmedse`:
 Computing standard error of the median using a method recommended by McKean and Shrader (1984)
@@ -156,7 +156,7 @@ Computing standard error of the median using a method recommended by McKean and 
     0.4708261134886094
 
 
-####16. `binomci`: 
+####16. `binomci`:
 Compute a 1-alpha confidence interval for p, the probability of success for a binomial dist. using Pratt's method y is a vector of 1's and 0's, x is the number of successes observed among n trials.
 
     julia> binomci(2, 10)           #when number of success and number of total trials are provided. By default alpha=.05
@@ -164,36 +164,36 @@ Compute a 1-alpha confidence interval for p, the probability of success for a bi
     confidence interval: 0.0274   0.5562
     Sample size          10
 
-    
+
     julia> trials=[1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0]
     julia> binomci(trials, 0.01)    #trial results are provided in array form consisting of 1's and 0's. Alpha=.01
     phat:    0.5
     confint: [0.176811, 0.849496]
     n:       12
-    
+
 
 ####17. `akerd`:
 Compute adaptive kernel density estimate for univariate data (See Silverman, 1986)
-   
+
     julia> akerd(x, title="Lognormal Distribution", xlab="x", ylab="Density")
 
 ![plot](http://img824.imageshack.us/img824/4894/sme4.png)
-    
+
     julia> srand(10)
     julia> x3=rnorm(100, 1, 2);
     julia> akerd(x3, title="Normal Distribution; mu=1, sd=2", xlab="x", ylab="Density", color="red", plottype="dash")
-    
+
 ![plot](http://img547.imageshack.us/img547/4920/zb8j.png)
-    
+
 
 ####18. `indirectTest`:
 This function is adapted from Andrew Hayes' SPSS macro, which evaluates indirect/mediation effects via percentile bootstrap and the Sobel Test.
 
     julia> srand(1)
     julia> m = randn(20);        #Mediator
-    julia> srand(2)             
+    julia> srand(2)
     julia> y = randn(20) + 2.0;  #Outcome variable
-    
+
     julia> indirectTest(y, x, m)   #5000 bootstrap samples by default
     TESTS OF INDIRECT EFFECT
 
@@ -208,13 +208,13 @@ This function is adapted from Andrew Hayes' SPSS macro, which evaluates indirect
     b(YX.M): -0.187775   0.195111   -0.962402   0.349338
 
     INDIRECT EFFECT AND SIGNIFICANCE USING NORMAL DISTRIBUTION
-              Estimate  Std.Error     z score      CI lo      CI hi  Pr(>|z|) 
+              Estimate  Std.Error     z score      CI lo      CI hi  Pr(>|z|)
     Sobel:   -0.015427   0.019161   -0.805126  -0.052981   0.022128  0.420747
-    
+
     BOOTSTRAP RESULTS OF INDIRECT EFFECT
-              Estimate  Std.Error       CI lo      CI hi    P value 
+              Estimate  Std.Error       CI lo      CI hi    P value
     Effect:  -0.048598   0.084280   -0.298647   0.019394   0.420800
-    
+
 if we add `plotit=true`, we get a kernel density plot of the effects derived from bootstrap samples:
 
 ![plot](http://img405.imageshack.us/img405/7603/wdiu.png)
@@ -229,7 +229,7 @@ Computing the confidence interval for the median.
     Confidence interval for the median
 
      Confidence interval:  0.547483       2.375232
-     
+
 
 
 ####19. `acbinomci()`
@@ -261,12 +261,12 @@ Extension of the 2nd stage of Stein's method based on the trimmed mean.
 
 
 This function is able to handle multiple dependent groups. Suppose that the original dataset contained 4 dependent groups and the sample size is 5 (`xold`), and we collected more data (`xnew`).
-    
+
     julia> srand(2)
     julia> xnew = rand(6, 4)
     julia> xold = reshape(x, 5, 4)
     julia> stein2_tr(xold, xnew)
-    
+
     Extension of the 2nd stage of Stein's method based on the trimmed mean
 
      Statistic             Group 1  Group 2  Statistic
@@ -277,7 +277,7 @@ This function is able to handle multiple dependent groups. Suppose that the orig
                                  2        4  -0.608510
                                  3        4  -0.649426
      Critical value:       10.885867
-     
+
 
 ####23. `sintv2()`
 Confidence interval for the median using the Hettmansperger-Sheather interpolation method.
@@ -296,7 +296,7 @@ Compute one-step M-estimator of location using Huber's Psi. The default bending 
 
     julia> onestep(x)
     1.384070801414857
-    
+
 
 
 
@@ -307,7 +307,7 @@ Compute a bootstrap, .95 confidence interval for the measure of location corresp
     Estimate:             1.384071
     Confidence interval:  0.760978       2.378872
     p value:             < 10e-16
-    
+
 
 
 
@@ -316,7 +316,7 @@ Compute MOM-estimator of location. The default bending constant is 2.24
 
     julia> mom(x)
     1.2596462322222222
-    
+
 
 
 ####27. `momci()`
@@ -327,8 +327,8 @@ Compute the bootstrap .95 confidence interval for the MOM-estimator of location 
     estimator of location based on Huber's Psi
 
      Confidence interval:  0.652212       1.684510
-     
-     
+
+
 
 ####28. `cnorm()`
 Create contaminated normal distributions.
@@ -390,15 +390,15 @@ Compute a .95 confidence interval for Pearson's correlation coefficient. This fu
     julia> pcorb(x, y)
     Estimate:             0.318931
     Confidence interval: -0.106467       0.663678
-    
+
 
 ####32. `yuend()`
 Compare the trimmed means of two dependent random variables using the data in x and y. The default amount of trimming is 20%.
 
     julia> srand(3)
-    julia> y2 = randn(20)+3; 
+    julia> y2 = randn(20)+3;
     julia> yuend(x, y2)
-    
+
     Comparing the trimmed means of two dependent variables.
 
     Sample size:          20
@@ -413,23 +413,23 @@ Compare the trimmed means of two dependent random variables using the data in x 
 ####32. `t1way()`
 A heteroscedastic one-way ANOVA for trimmed means using a generalization of Welch's method. When `tr=0`, the function conducts a heteroscedastic 1-way ANOVA without trimming.
 
-There are two ways to specify data for the function: 
+There are two ways to specify data for the function:
 * A two dimensional array where each column represents a group. Hence, a 10 X 3 array means that a one way ANOVA will be performed on 3 groups. This also means equal sample sizes amongst the groups.
 * A vector containing the outcome variable and another vector containing group information.
 
 Two examples are shown below to demonstrate the two ways of specifying data:
-  
+
     #Data in two dimensional array form
     #Prepare data
     julia> srand(12)
-    julia> m2 = reshape(sort(randn(30)), 10, 3); 
+    julia> m2 = reshape(sort(randn(30)), 10, 3);
 
     julia> t1way(m2)
     Heteroscedastic one-way ANOVA for trimmed means
     using a generalization of Welch's method.
 
-    Sample size:          10   10   10  
-    Degrees of freedom:   2.00   8.25  
+    Sample size:          10   10   10
+    Degrees of freedom:   2.00   8.25
     Statistic:            20.955146
     p value:              0.000583
 
@@ -438,16 +438,12 @@ Two examples are shown below to demonstrate the two ways of specifying data:
     julia> srand(12)
     julia> m3 = sort(randn(30));
     julia> group = rep(1:3, [8,12,10]);   #Unequal sample sizes: n1 = 8, n2 = 12, n3 = 10
-    
+
     julia> t1way(m3, group)
     Heteroscedastic one-way ANOVA for trimmed means
     using a generalization of Welch's method.
 
-    Sample size:          8   12   10  
-    Degrees of freedom:   2.00   8.11  
+    Sample size:          8   12   10
+    Degrees of freedom:   2.00   8.11
     Statistic:            28.990510
     p value:              0.000202
-    
-
-
-
