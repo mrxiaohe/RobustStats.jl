@@ -52,11 +52,23 @@ export
     bootse,
     indirectTest,
     yuend,
-    t1way
+    t1way,
+    bisquareWM,
+    huberWM,
+    trimean,
+    shorthrange,
+    shorthrange!,
+    scaleS,
+    scaleS!,
+    scaleQ,
+    scaleQ!
+
 
 include("types.jl")
 include("utils.jl")
 include("show.jl")
 include("functions.jl")
+include("location_estimators.jl")
+include("dispersion_estimators.jl")
 include("data.jl")
 end
