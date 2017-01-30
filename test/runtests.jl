@@ -6,9 +6,9 @@ x=[1.672064, 0.7876588, 0.317322, 0.9721646, 0.4004206, 1.665123, 3.059971, 0.09
 
 # Tests are based on examples from README
 #1
-@test_approx_eq mean(x) 1.853401259
-@test_approx_eq tmean(x) 1.2921802666666669
-@test_approx_eq tmean(x, tr=0) 1.853401259
+@test mean(x) ≈ 1.853401259
+@test tmean(x) ≈ 1.2921802666666669
+@test tmean(x, tr=0) ≈ 1.853401259
 @test_approx_eq tmean(x, tr=0.3) 1.1466045875000002
 @test_approx_eq tmean(x, tr=0.5) 1.1232023
 
@@ -152,12 +152,10 @@ _verify_whm([1,4,2,5,3,6], [1,4,2,5,3,4])
 
 datalengths = [10,11,1000,1111]
 wttypes = [Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64]
-for i=1:length(datalengths)
-	for j=1:length(wttypes)
-		N = datalengths[i]
+for N in datalengths
+	for wttype in wttypes
 		a = randn(N)
-		w = Array(wttypes[j], N)
-		rand!(w)
+        w = rand(wttype, N)
 		# Careful! Can't have sum of weights overflow, and can't have negative weights
 		for k=1:N
 			if w[k]<0

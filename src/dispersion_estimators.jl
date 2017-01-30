@@ -164,7 +164,7 @@ function _slow_scaleQ(x::AbstractArray)
 
     h = div(N,2)+1
     k = div(h*(h-1), 2)
-    A = Array(eltype(x), N, N)
+    A = zeros(eltype(x), N, N)
     for i=2:N
         for j=1:i-1
             A[i,j] = A[j,i] = abs(x[i]-x[j])
@@ -205,10 +205,10 @@ function scaleQ!(y::AbstractArray)
     k = div(h*(h-1), 2)
     left = collect(N+1:-1:2)
     right = fill(N, N)
-    work = Array(eltype(y), N)
-    weight = Array(Int64, N)
-    P = Array(Int64, N)
-    Q = Array(Int64, N)
+    work = zeros(eltype(y), N)
+    weight = zeros(Int64, N)
+    P = zeros(Int64, N)
+    Q = zeros(Int64, N)
 
     jhelp = div(N*(N+1), 2)
     knew = k+jhelp
@@ -309,9 +309,9 @@ function _slow_scaleS(x::AbstractArray)
     lomed(x::Vector) = select!(x, div(length(x)+1, 2))
     himed(x::Vector) = select!(x, div(length(x), 2)+1)
 
-    a2 = Array(eltype(x), N)
+    a2 = zeros(eltype(x), N)
     for i = 1:N
-        a2[i] = himed(abs(x-x[i]))
+        a2[i] = himed(abs.(x-x[i]))
     end
 
     # Normalization
@@ -343,7 +343,7 @@ function scaleS!(x::AbstractArray)
     # himed(x::Vector) = select!(x, div(length(x), 2)+1)
 
     sort!(x)
-    a2 = Array(eltype(x), N)
+    a2 = zeros(eltype(x), N)
     a2[1] = x[div(N,2)+1]-x[1]
     for i = 2:div(N+1, 2)
         nA = i-1

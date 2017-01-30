@@ -21,7 +21,7 @@ weight."""
 function bisquareWM{T <: Real}(x::Vector{T}, k::Real, center::Real, tol::Real)
     for _iteration in 1:100
         weights = (1.0-((x-center)/k).^2).^2
-        weights[abs(x-center).>k] = 0.0
+        weights[abs.(x-center).>k] = 0.0
         newcenter = sum(weights .* x)/sum(weights)
         if abs(newcenter - center)<tol
             return newcenter
@@ -57,7 +57,7 @@ weight."""
 # Huber's weighted mean, a location estimator
 function huberWM{T <: Real}(x::Vector{T}, k::Real, center::Real, tol::Real)
     for _iteration = 1:100
-        weights = float(k)./abs(x-center)
+        weights = float(k)./abs.(x-center)
         weights[weights.>1.0] = 1.0
         newcenter = sum(weights .* x)/sum(weights)
         if abs(newcenter - center) < tol
