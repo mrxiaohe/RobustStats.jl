@@ -111,6 +111,7 @@ function trimci{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05, 
 end
 
 
+# We have no idea what this does.
 function stein1{S <: Real}(x::AbstractArray{S}, delta::Real; alpha::Real=0.05,
     pow::Real=0.8, oneside::Bool=false, n=nothing, variance=nothing)
     delta = abs(delta)
@@ -126,6 +127,7 @@ function stein1{S <: Real}(x::AbstractArray{S}, delta::Real; alpha::Real=0.05,
 end
 
 
+# We have no idea what this does.
 function stein2{S <: Real, T <: Real}(x1::AbstractArray{S}, x2::AbstractArray{T}; mu0::Real=0.0, alpha::Real=0.05, method::Bool=true)
     n       = length(x1)
     df      = n-1
@@ -163,27 +165,37 @@ function idealf{S <: Real}(x::AbstractArray{S})
     (1-g).*y[j]+g.*y[j+1], (1-g).*y[k]+g.*y[k-1]
 end
 
-#Percentage bend midvariance
+"""`pbvar(x; beta=0.2)`
+
+Return the percentage bend midvariance of real-valued array `x`, a robust, efficient
+measure of scale (dispersion). Lower values of beta increase efficiency but reduce
+robustness.
+This requires `0 <= beta <= 0.5`. The trimming fraction defaults to `beta=0.2`.
+"""
 function pbvar{S <: Real}(x::AbstractArray{S}; beta::Real=0.2)
-    output  = 0.0
     const n = length(x)
-    w       = zeros( n)
-    med     = median(x, checknan=false)
-    w       = [abs(x[i]-med) for i=1:n]
-    w       = sort!(w)
-    m       = floor(Int64, (1-beta).*n+0.5)
-    z       = 0.0
-    omega   = w[m]
-    counter = 0
-    if omega > 0
-        for i = 1:n
-            y = (x[i]-med)/omega
-            z += y>1.0?1.0:(y< -1.0?1.0:y*y)
-            counter+=abs(y) < 1?1:0
-        end
-        output = n*(omega*omega)*z/(counter*counter)
+    med = median(x)
+    absdev = abs(x-med)
+    sort!(absdev)
+
+    m = floor(Int64, (1-beta)*n+0.5)
+    ω = absdev[m]
+    if ω <= 0   # At least a fraction (1-beta) of all values are identical
+        return 0.0
     end
-    return output
+    
+    z = 0.0
+    counter = 0
+    for i = 1:n
+        ψ = absdev[i]/ω
+        if (abs(ψ) >= 1.0)
+            z += 1.0
+        else
+            z += ψ^2
+            counter += 1
+        end
+    end
+    n*(ω^2)*z/(counter^2)
 end
 
 

@@ -4,7 +4,7 @@ RobustStats
 
 [![Build Status](https://travis-ci.org/maximsch2/RobustStats.jl.svg?branch=master)](https://travis-ci.org/maximsch2/RobustStats.jl)
 
-Most functions in this file are robust statistical methods based on the R package WRS ([an R-Forge repository](https://r-forge.r-project.org/projects/wrs/)) by [Rand Wilcox](http://dornsife.usc.edu/cf/labs/wilcox/wilcox-faculty-display.cfm). Only a handful of functions are included at this point. Others were contributed by users as needed.
+Most functions in this file are robust statistical methods based on the R package WRS ([an R-Forge repository](https://r-forge.r-project.org/projects/wrs/)) by [Rand Wilcox](http://dornsife.usc.edu/cf/labs/wilcox/wilcox-faculty-display.cfm). Only a handful of functions are included at this point. Others were contributed by users as needed. [References](#References) can be found below.
 
 This package requires `Compat`, `Rmath`, `Dataframes`, and `Distributions`. They can be installed automatically, or by invoking `Pkg.add("packagename")`.
 
@@ -110,7 +110,9 @@ median of an even-length array.
     (0.4483411416666667,2.7282743333333332)
 
 
-####10. `pbvar`: percentage bend midvariance
+#### `pbvar`: percentage bend midvariance
+
+See [NIST ITL webpage](http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/pbendmv.htm) for more.
 
     julia> pbvar(x)
     2.0009575278957623
@@ -476,7 +478,9 @@ The first reference on scaleQ and scaleS (below) is a lengthy discussion of the 
 To choose between Q and S, the authors note that Q has higher statistical efficiency, but S is typically twice as fast to compute and has lower gross-error sensitivity. An interesting advantage of Q over the others is that its influence function is continuous. For a rough idea about the efficiency, the large-N limit of the standardized variance of each quantity is 2.722 for MAD, 1.714 for S, and 1.216 for Q, relative to 1.000 for the standard deviation (given Gaussian data). The paper gives the ratios for Cauchy and exponential distributions, too; the efficiency advantages of Q are less for Cauchy than for the other distributions.
 
 
-## References:
+## References
+* Percentage bend and related estimators come from Lewis H. Shoemaker  Thomas P. Hettmansperger ["Robust estimates and tests for the one- and two-sample scale models"](https://doi.org/10.1093/biomet/69.1.47) in _Biometrika_ Vol 69 (1982) pp.47-53.
+
 * Shortest Half-range comes from P.J. Rousseeuw and A.M. Leroy, ["A Robust Scale Estimator Based on the Shortest Half"](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9574.1988.tb01224.x/abstract) in _Statistica Neerlandica_ Vol 42 (1988), pp. 103-116. doi:10.1111/j.1467-9574.1988.tb01224.x . See also R.D. Martin and R. H. Zamar, ["Bias-Robust Estimation of Scale"](http://projecteuclid.org/euclid.aos/1176349161)  in _Annals of Statistics_ Vol 21 (1993) pp. 991-1017.  doi:10.1214/aoe/1176349161
 
 * Scale-Q and Scale-S statistics are described in P.J. Rousseeuw and C. Croux ["Alternatives to the Median Absolute Deviation"](http://www.jstor.org/stable/2291267) in _J. American Statistical Assoc._ Vo 88 (1993) pp 1273-1283. The time-efficient algorithms for computing them appear in C. Croux and P.J. Rousseeuw, ["Time-Efficient Algorithms for Two Highly Robust Estimators of Scale"](http://link.springer.com/chapter/10.1007/978-3-662-26811-7_58) in _Computational Statistics, Vol I_ (1992), Y. Dodge and J. Whittaker editors, Heidelberg, Physica-Verlag, pp 411-428. If link fails, see ftp://ftp.win.ua.ac.be/pub/preprints/92/Timeff92.pdf

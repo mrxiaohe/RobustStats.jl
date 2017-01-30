@@ -30,6 +30,7 @@ q1,q3 = idealf(x)
 @test q1 ≈ y[5]*7/12+y[6]*5/12
 @test q3 ≈ y[15]*5/12+y[16]*7/12
 
+@test pbvar(x) ≈ 2.0009575278957623
 
 #srand(2)
 #y = randn(20) + 2.0
