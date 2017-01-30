@@ -1,22 +1,23 @@
-"""`tmean(x, tr=0.2)`
+"""`tmean(x; tr=0.2)`
 
-Trimmed mean of `x`.
+Trimmed mean of real-valued array `x`.
 
 Find the mean of `x`, omitting the lowest and highest `tr` fraction of the data.
 This requires `0 <= tr <= 0.5`. The amount of trimming defaults to `tr=0.2`.
 """
 function tmean{S <: Real}(x::AbstractArray{S}; tr::Real=0.2)
-    tmean!(copy(x))
+    tmean!(copy(x), tr=tr)
 end
 
 
-"""`tmean!(x, tr=0.2)`
+"""`tmean!(x; tr=0.2)`
 
-Trimmed mean of `x`, which sorts the vector `x` in place.
+Trimmed mean of real-valued array `x`, which sorts the vector `x` in place.
 
 Find the mean of `x`, omitting the lowest and highest `tr` fraction of the data.
-This requires `0 <= tr <= 0.5`. The amount of trimming defaults to `tr=0.2`.
-"""function tmean!{S <: Real}(x::AbstractArray{S}; tr::Real=0.2)
+This requires `0 <= tr <= 0.5`. The trimming fraction defaults to `tr=0.2`.
+"""
+function tmean!{S <: Real}(x::AbstractArray{S}; tr::Real=0.2)
     if tr < 0 || tr > 0.5
         error("tr cannot be smaller than 0 or larger than 0.5")
     elseif tr == 0
@@ -32,32 +33,64 @@ This requires `0 <= tr <= 0.5`. The amount of trimming defaults to `tr=0.2`.
 end
 
 
-#Winsorize data
+"""`winval(x; tr=0.2)`
+
+Winsorize real-valued array `x`.
+
+Return a copy of `x` in which extreme values (that is, the lowest and highest
+fraction `tr` of the data) are replaced by the lowest or highest non-extreme
+value, as appropriate. The trimming fraction defaults to `tr=0.2`.
+"""
 function winval{S <: Real}(x::AbstractArray{S}; tr::Real=0.2)
-    xcopy   = copy(x)
-    n       = length(x)
-    xcopy   = sort!(xcopy)
+    const n = length(x)
+    xcopy   = sort(x)
     ibot    = floor(Int64, tr*n)+1
     itop    = n-ibot+1
     xbot, xtop = xcopy[ibot], xcopy[itop]
-    return  [x[i]<=xbot?xbot:(x[i]>=xtop?xtop:x[i]) for i=1:n]
+    return  [x[i]<=xbot ? xbot : (x[i]>=xtop ? xtop : x[i]) for i=1:n]
 end
 
-#Winsorized mean
-winmean{S <: Real}(x::AbstractArray{S}; tr=0.2)=mean(winval(x, tr=tr))
+"""`winmean(x; tr=0.2)`
 
-#Winsorized variance
-winvar{S <: Real}(x::AbstractArray{S}; tr=0.2)=var(winval(x, tr=tr))
+Winsorized mean of real-valued array `x`.
 
-#winsorized standard deviation
-winstd{S <: Real}(x::AbstractArray{S}; tr=0.2)=std(winval(x, tr=tr))
+See `winval` for what Winsorizing (clipping) signifies.
+"""
+winmean{S <: Real}(x::AbstractArray{S}; tr=0.2) = mean(winval(x, tr=tr))
+
+"""`winvar(x; tr=0.2)`
+
+Winsorized variance of real-valued array `x`.
+
+See `winval` for what Winsorizing (clipping) signifies.
+"""
+winvar{S <: Real}(x::AbstractArray{S}; tr=0.2) = var(winval(x, tr=tr))
+
+"""`winstd(x; tr=0.2)`
+
+Winsorized standard deviation of real-valued array `x`.
+
+See `winval` for what Winsorizing (clipping) signifies.
+"""
+winstd{S <: Real}(x::AbstractArray{S}; tr=0.2) = std(winval(x, tr=tr))
 
 
-#Estimate the standard error of the gamma trimmed mean
-trimse{S <: Real}(x::AbstractArray{S}; tr::Real=0.2)=
+"""`trimse(x; tr=0.2)`
+
+Estimated standard error of the mean for Winsorized real-valued array `x`.
+
+See `winval` for what Winsorizing (clipping) signifies.
+"""
+trimse{S <: Real}(x::AbstractArray{S}; tr::Real=0.2) =
     sqrt(winvar(x,tr=tr))/((1-2tr)*sqrt(length(x)))
 
 #Compute a 1-alpha confidence interval for the trimmed mean
+"""`trimci(x; tr=0.2, alpha=0.05, ...)`
+
+Compute a (1-alpha) confidence interval for the trimmed mean.
+
+Returns a `RobustStats.testOutput` object.
+"""
 function trimci{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05, nullvalue::Real=0, method=true)
     se  = trimse(x, tr=tr)
     n   = length(x)

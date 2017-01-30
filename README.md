@@ -18,7 +18,7 @@ This package requires `Compat`, `Rmath`, `Dataframes`, and `Distributions`. They
     julia> mean(x)     #the mean of this dataset
     1.853401259
 
-####1. `tmean`: trimmed mean
+#### `tmean`: trimmed mean
 
     julia> tmean(x)            #20% trimming by default
     1.2921802666666669
@@ -33,7 +33,7 @@ This package requires `Compat`, `Rmath`, `Dataframes`, and `Distributions`. They
     1.1232023
 
 
-####2. `winval`: winsorize data
+#### `winval`: winsorize data
 
     julia> winval(x)           #20% winsorization; can be changed via the named argument `tr`.
     20-element Any Array:
@@ -47,25 +47,25 @@ This package requires `Compat`, `Rmath`, `Dataframes`, and `Distributions`. They
      0.51543
 
 
-####3. `winmean`: winsorized mean
+#### `winmean`: winsorized mean
 
     julia> winmean(x)          #20% winsorization; can be changed via the named argument `tr`.
     1.4205834800000001
 
 
-####4. `winvar`: winsorized variance
+#### `winvar`: winsorized variance
 
     julia> winvar(x)           #20% winsorization; can be changed via the named argument `tr`.
     0.998659015947531
 
 
-####5. `trimse`: estimated standard error of the gamma trimmed mean
+#### `trimse`: estimated standard error of the trimmed mean
 
     julia> trimse(x)           #20% winsorization; can be changed via the named argument `tr`.
     0.3724280347984342
 
 
-####6. `trimci`: 1-alpha confidence interval for the trimmed mean
+#### `trimci`: (1-alpha) confidence interval for the trimmed mean
 Can be used for paired groups if `x` consists of the difference scores of two paired groups.
 
     julia> trimci(x)                 #20% winsorization; can be changed via the named argument `tr`.

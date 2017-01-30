@@ -5,24 +5,22 @@ x=[1.672064, 0.7876588, 0.317322, 0.9721646, 0.4004206, 1.665123, 3.059971, 0.09
    0.8211308, 1.328767, 2.825956, 0.1102891, 0.06314285, 2.59152, 8.624108, 0.6516885, 5.770285, 0.5154299]
 
 # Tests are based on examples from README
-#1
+
 @test mean(x) ≈ 1.853401259
 @test tmean(x) ≈ 1.2921802666666669
 @test tmean(x, tr=0) ≈ 1.853401259
-@test_approx_eq tmean(x, tr=0.3) 1.1466045875000002
-@test_approx_eq tmean(x, tr=0.5) 1.1232023
+@test tmean(x, tr=0.3) ≈ 1.1466045875000002
+@test tmean(x, tr=0.5) ≈ 1.1232023
 
-# 2
-winval(x) # doesn't crash
-
-# 3
-@test_approx_eq winmean(x) 1.4205834800000001
-
-# 4
-@test_approx_eq winvar(x) 0.998659015947531
-
-# 5. trimse: estimated standard error of the gamma trimmed mean
-@test_approx_eq trimse(x)   0.3724280347984342
+# Winsorized data
+winval(x)      # just verify that it doesn't crash
+@test winmean(x) ≈ 1.4205834800000001
+@test winvar(x) ≈ 0.998659015947531
+@test RobustStats.winstd(x) ≈ 0.9993292830431474
+@test trimse(x) ≈ 0.3724280347984342
+out = trimci(x)
+@test out.estimate ≈ 1.2921802666666669
+@test out.p ≈ 0.005243565819244678
 
 # 7. stein1: Stein's method
 @test stein1(x, 1) == 41
