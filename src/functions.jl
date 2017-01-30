@@ -1,28 +1,29 @@
-#Trimmed mean; amount of trimming defaults to 20% or 0.2
-function tmean{S <: Real}(x::Vector{S}; tr::Real=0.2)
-    if tr < 0 || tr > 0.5
-        error("tr cannot be smaller than 0 or larger than 0.5")
-    elseif tr == 0
-        return mean(x)
-    elseif tr == .5
-        return median(x)
-    else 
-        n   = length(x)
-        lo  = floor(Int64, n*tr)+1
-        hi  = n+1-lo
-        return mean(sort!(copy(x))[lo:hi])
-    end
-end
-#tmean{S <: Real}(x::DataVector{S}; tr::Real=0.2)=tmean(removeNA(x), tr=tr)
+"""`tmean(x, tr=0.2)`
 
-function tmean!{S <: Real}(x::Vector{S}; tr::Real=0.2)
+Trimmed mean of `x`.
+
+Find the mean of `x`, omitting the lowest and highest `tr` fraction of the data.
+This requires `0 <= tr <= 0.5`. The amount of trimming defaults to `tr=0.2`.
+"""
+function tmean{S <: Real}(x::AbstractArray{S}; tr::Real=0.2)
+    tmean!(copy(x))
+end
+
+
+"""`tmean!(x, tr=0.2)`
+
+Trimmed mean of `x`, which sorts the vector `x` in place.
+
+Find the mean of `x`, omitting the lowest and highest `tr` fraction of the data.
+This requires `0 <= tr <= 0.5`. The amount of trimming defaults to `tr=0.2`.
+"""function tmean!{S <: Real}(x::AbstractArray{S}; tr::Real=0.2)
     if tr < 0 || tr > 0.5
         error("tr cannot be smaller than 0 or larger than 0.5")
     elseif tr == 0
         return mean(x)
     elseif tr == .5
         return median!(x)
-    else 
+    else
         n   = length(x)
         lo  = floor(Int64, n*tr)+1
         hi  = n+1-lo
