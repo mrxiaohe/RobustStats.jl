@@ -85,7 +85,7 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
 
 #### `stein1`, `stein2`: Two steps of Stein's method
 
-These are undocumented. If you know what this means, please contact the maintainers.
+These are undocumented. If you know what this means and can help us, please contact the maintainers.
 
     julia> stein1(x, 1)
     41
@@ -112,16 +112,20 @@ median of an even-length array.
 
 #### `pbvar`: percentage bend midvariance
 
+A robust estimator of scale (dispersion).
 See [NIST ITL webpage](http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/pbendmv.htm) for more.
 
     julia> pbvar(x)
     2.0009575278957623
 
 
-####11. `bivar`: biweight midvariance
+#### `bivar`: biweight midvariance
+
+A robust estimator of scale (dispersion).
+See [NIST ITL webpage](http://www.itl.nist.gov/div898/software/dataplot/refman2/auxillar/biwmidv.htm) for more.
 
     julia> bivar(x)
-    1.588527039652727
+    1.5885279811329132
 
 
 ####12. `tauloc`: tau measure of location

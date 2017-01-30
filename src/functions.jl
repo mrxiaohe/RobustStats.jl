@@ -183,7 +183,7 @@ function pbvar{S <: Real}(x::AbstractArray{S}; beta::Real=0.2)
     if ω <= 0   # At least a fraction (1-beta) of all values are identical
         return 0.0
     end
-    
+
     z = 0.0
     counter = 0
     for i = 1:n
@@ -199,22 +199,27 @@ function pbvar{S <: Real}(x::AbstractArray{S}; beta::Real=0.2)
 end
 
 
-#Biweight midvariance
+"""`bivar(x; beta=0.2)`
+
+Return the biweight midvariance of real-valued array `x`, a robust, efficient
+measure of scale (dispersion). Lower values of beta increase efficiency but reduce
+robustness.
+This requires `0 <= beta <= 0.5`. The trimming fraction defaults to `beta=0.2`.
+"""
 function bivar{S <: Real}(x::AbstractArray{S})
-    m   = median(x, checknan=false)
-    n   = length(x)
-    u   = 0.0
+    const n = length(x)
+    med = median(x)
     MAD = mad(x)
-    av  = zeros( n)
-    top = bot=0.0
     q   = Rmath.qnorm(0.75)
+    top = bot = 0.0
     for i = 1:n
-        u     = abs(x[i]-m)./(9.*q.*MAD)
-        av[i] = u<1.0?1:0
-        top   += (n*av[i]*(x[i]-m)*(x[i]-m)*(1-u*u).^4)
-        bot   += av[i]*(1-u*u)*(1-5*u*u)
+        u = abs(x[i]-med)./(9.*q.*MAD)
+        if (u<1.0)
+            top += n*(x[i]-med)*(x[i]-med)*(1-u*u).^4
+            bot += (1-u*u)*(1-5*u*u)
+        end
     end
-    top/(bot*bot)
+    top/(bot^2)
 end
 
 
