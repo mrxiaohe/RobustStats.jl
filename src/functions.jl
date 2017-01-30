@@ -84,7 +84,6 @@ See `winval` for what Winsorizing (clipping) signifies.
 trimse{S <: Real}(x::AbstractArray{S}; tr::Real=0.2) =
     sqrt(winvar(x,tr=tr))/((1-2tr)*sqrt(length(x)))
 
-#Compute a 1-alpha confidence interval for the trimmed mean
 """`trimci(x; tr=0.2, alpha=0.05, ...)`
 
 Compute a (1-alpha) confidence interval for the trimmed mean.
@@ -112,13 +111,15 @@ function trimci{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05, 
 end
 
 
-#Stein's method
-function stein1{S <: Real}(x::AbstractArray{S}, delta::Real; alpha::Real=0.05, pow::Real=0.8, oneside::Bool=false, n=nothing, variance=nothing)
-    delta    = abs(delta)
-    n        = n==nothing?length(x):n
-    variance = variance==nothing?var(x):variance
+function stein1{S <: Real}(x::AbstractArray{S}, delta::Real; alpha::Real=0.05,
+    pow::Real=0.8, oneside::Bool=false, n=nothing, variance=nothing)
+    delta = abs(delta)
+    if n==nothing; n=length(x); end
+    if variance==nothing; variance = var(x); end
+    if !oneside
+        alpha = alpha/2
+    end
     df       = n-1
-    alpha    = !oneside?alpha/2:alpha
     d        = (delta/(Rmath.qt(pow, df)-Rmath.qt(alpha, df)))*(delta/(Rmath.qt(pow, df)-Rmath.qt(alpha, df)))
     N        = max(n, floor(Int64, variance/d)+1)
     return N
@@ -135,7 +136,7 @@ function stein2{S <: Real, T <: Real}(x1::AbstractArray{S}, x2::AbstractArray{T}
     lo, hi  = xbar-crit*std(x1), xbar+crit*std(x1)
     sig     = 2*(1-Rmath.pt(test, df))
     METHOD  = method?"The 2nd stage of Stein's method":nothing
-    output  =testOutput()
+    output  = testOutput()
     output.method    = METHOD
     output.df        = df
     output.estimate  = xbar
@@ -147,15 +148,19 @@ function stein2{S <: Real, T <: Real}(x1::AbstractArray{S}, x2::AbstractArray{T}
 end
 
 
-#Ideal fourths
-function idealf{S <: Real}(x::AbstractArray{S}; method::Bool=true)
-    n       = length(x)
-    j       = integer(floor(Int64, n/4+5/12))
+"""`idealf(x)`
+
+Compute the ideal fourths (interpolated quartiles) of real-valued array `x`.
+
+Returns a tuple of (1st_quartile, 3rd_quartile)
+"""
+function idealf{S <: Real}(x::AbstractArray{S})
     y       = sort(x)
-    g       = n/4-j+5/12
-    k       = n-j+1
-    METHOD  = method?"The ideal fourths":nothing
-    idealfOutput((1-g).*y[j]+g.*y[j+1], (1-g).*y[k]+g.*y[k-1], METHOD)
+    n       = length(x)
+    j       = floor(Int64, n/4+5/12) # 25%ile is in [y[j], y[j+1]]
+    k       = n-j+1        # 75%ile is in [y[k],y[k-1]]
+    g       = n/4+5/12 - j   # weighting for the two data surrounding quartiles.
+    (1-g).*y[j]+g.*y[j+1], (1-g).*y[k]+g.*y[k-1]
 end
 
 #Percentage bend midvariance

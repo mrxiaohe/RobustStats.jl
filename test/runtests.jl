@@ -3,6 +3,7 @@ using RobustStats
 
 x=[1.672064, 0.7876588, 0.317322, 0.9721646, 0.4004206, 1.665123, 3.059971, 0.09459603, 1.27424, 3.522148,
    0.8211308, 1.328767, 2.825956, 0.1102891, 0.06314285, 2.59152, 8.624108, 0.6516885, 5.770285, 0.5154299]
+y = sort(x)
 
 # Tests are based on examples from README
 
@@ -22,9 +23,12 @@ out = trimci(x)
 @test out.estimate ≈ 1.2921802666666669
 @test out.p ≈ 0.005243565819244678
 
-# 7. stein1: Stein's method
 @test stein1(x, 1) == 41
 
+q1,q3 = idealf(x)
+@assert length(x) == 20
+@test q1 ≈ y[5]*7/12+y[6]*5/12
+@test q3 ≈ y[15]*5/12+y[16]*7/12
 
 
 #srand(2)

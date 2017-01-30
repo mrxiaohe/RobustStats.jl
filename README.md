@@ -35,6 +35,10 @@ This package requires `Compat`, `Rmath`, `Dataframes`, and `Distributions`. They
 
 #### `winval`: winsorize data
 
+That is, return a copy of the input array, with the extreme low or high values
+replaced by the lowest or highest non-extreme value, repectively. The fraction
+considered extreme can be between 0 and 0.5, with 0.2 as the default.
+
     julia> winval(x)           #20% winsorization; can be changed via the named argument `tr`.
     20-element Any Array:
      1.67206
@@ -79,14 +83,12 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
 
 
 
-####7. `stein1`: Stein's method
+#### `stein1`, `stein2`: Two steps of Stein's method
+
+These are undocumented. If you know what this means, please contact the maintainers.
 
     julia> stein1(x, 1)
     41
-
-
-####8. `stein2`: the second stage of Stein's method.
-
     julia> srand(1)         #set seed
     julia> x2=rnorm(21);    #suppose additional 21 data points were collected.
     julia> stein2(x, x2)
@@ -98,12 +100,14 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
     pval:      0.020975586092444765
 
 
-####9. `idealf`: the ideal fourths:
+#### `idealf`: the ideal fourths:
+
+Returns `(q1,q3)`, the 1st and 3rd quartiles. These will be a weighted sum of
+the values that bracket the exact quartiles, analogous to how we handle the
+median of an even-length array.
 
     julia> idealf(x)
-    The ideal fourths
-    Lower quartile:  0.448341
-    Upper quartile:  2.728274
+    (0.4483411416666667,2.7282743333333332)
 
 
 ####10. `pbvar`: percentage bend midvariance

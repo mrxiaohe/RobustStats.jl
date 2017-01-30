@@ -11,7 +11,6 @@ import DataFrames.deleterows!
 
 export
     outOutput,
-    idealfOutput,
     tmean,
     winval,
     winmean,
