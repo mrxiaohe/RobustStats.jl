@@ -1,5 +1,9 @@
 language: julia
 julia:
   - 0.5
+  - release
+os:
+  - linux
+  - osx
 notifications:
     email: false

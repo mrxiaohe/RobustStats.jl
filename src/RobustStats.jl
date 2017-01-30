@@ -9,7 +9,7 @@ import DataFrames.complete_cases
 import DataFrames.deleterows!
 
 
-export 
+export
     outOutput,
     idealfOutput,
     testOutput,
@@ -33,7 +33,7 @@ export
     sint,
     binomci,
     acbinomci,
-    near, 
+    near,
     msmedse,
     stein1_tr,
     stein2_tr,
@@ -50,15 +50,25 @@ export
     indt,
     pcorb,
     bootse,
-    indirectTest, 
+    indirectTest,
     yuend,
-    t1way
-    
+    t1way,
+    bisquareWM,
+    huberWM,
+    trimean,
+    shorthrange,
+    shorthrange!,
+    scaleS,
+    scaleS!,
+    scaleQ,
+    scaleQ!
+
+
 include("types.jl")
-include("utilis.jl")
+include("utils.jl")
 include("show.jl")
 include("functions.jl")
+include("location_estimators.jl")
+include("dispersion_estimators.jl")
 include("data.jl")
 end
-
-
