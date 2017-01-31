@@ -140,9 +140,9 @@ See Yohai and Zamar _JASA_, vol 83 (1988), pp 406-413 and  Maronna and Zamar _Te
     1.5300804969271078
 
 
-####14. `outbox`: outlier detection
+#### `outbox`: outlier detection
 
-using a modified boxplot rule based on the ideal fourths; when the named argument `mbox` is set to `true`, a modification of the boxplot rule suggested by Carling (2000) is used
+Use a modified boxplot rule based on the ideal fourths; when the named argument `mbox` is set to `true`, a modification of the boxplot rule suggested by Carling (2000) is used.
 
     julia> outbox(x)
     Outlier detection method using
@@ -483,6 +483,7 @@ To choose between Q and S, the authors note that Q has higher statistical effici
 
 * Tau measures of location and scale are from V.J. Yohai and R.H. Zamar ["High Breakdown-Point Estimates of Regression by Means of the Minimization of an Efficient Scale"](http://doi/10.1080/01621459.1988.10478611) in _J. American Statistical Assoc._ vol 83 (1988) pp. 406-413.
 
+* The `outbox(..., mbox=true)` modification was suggested in K. Carling, ["Resistant outlier rules and the non-Gaussian case"](http://dx.doi.org/10.1016/S0167-9473(99)00057-2) in _Computational Statistics and Data Analysis_ vol 33 (2000), pp. 249-258. doi:10.1016/S0167-9473(99)00057-2
 
 * Shortest Half-range comes from P.J. Rousseeuw and A.M. Leroy, ["A Robust Scale Estimator Based on the Shortest Half"](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9574.1988.tb01224.x/abstract) in _Statistica Neerlandica_ Vol 42 (1988), pp. 103-116. doi:10.1111/j.1467-9574.1988.tb01224.x . See also R.D. Martin and R. H. Zamar, ["Bias-Robust Estimation of Scale"](http://projecteuclid.org/euclid.aos/1176349161)  in _Annals of Statistics_ Vol 21 (1993) pp. 991-1017.  doi:10.1214/aoe/1176349161
 

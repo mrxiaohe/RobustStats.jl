@@ -36,6 +36,11 @@ q1,q3 = idealf(x)
 @test tauloc(x) ≈ 1.2696674487629664
 @test tauvar(x) ≈ 1.5300804969271078
 
+ob = outbox(x)
+@test a.nout == 1
+@test a.outval ≈ 8.62411
+@test a.outid == [17]
+
 
 #srand(2)
 #y = randn(20) + 2.0

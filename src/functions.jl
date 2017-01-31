@@ -261,37 +261,35 @@ function tauvar{S <: Real}(x::AbstractArray{S}; cval::Real=3.0)
 end
 
 
-#Outlier detection method using the boxplot rule. The ideal fourths are
-#used to estimate the quartiles
+"""`outbox(x; mbox::Bool=false, ...)`
+
+Use a modified boxplot rule based on the ideal fourths (`idealf`). When the named argument 
+`mbox` is set to true, a modification of the boxplot rule suggested by Carling (2000) is used
+"""
 function outbox{S <: Real}(x::AbstractArray{S}; mbox::Bool=false, gval::Real=NaN, method::Bool=true)
-    n    = length(x)
-    temp = idealf(x, method=false)
-    cl   = 0.0
-    cu   = 0.0
+    const n = length(x)
+    lower_quartile, upper_quartile = idealf(x)
+    IQR = upper_quartile-lower_quartile
+    cl = cu = 0.0
     if mbox
         if isnan(gval)
             gval=(17.63*n-23.64)/(7.74*n-3.71)
         end
-        cl = median(x, checknan=false) - gval*(temp.upper_quartile-temp.lower_quartile)
-        cu = median(x, checknan=false) + gval*(temp.upper_quartile-temp.lower_quartile)
+        cl = median(x) - gval*IQR
+        cu = median(x) + gval*IQR
     elseif !mbox
         if isnan(gval)
             gval=1.5
         end
-        cl = temp.lower_quartile - gval*(temp.upper_quartile-temp.lower_quartile)
-        cu = temp.upper_quartile + gval*(temp.upper_quartile-temp.lower_quartile)
+        cl = lower_quartile - gval*IQR
+        cu = upper_quartile + gval*IQR
     end
-    flag=falses(n)
-    for i=1:n
-        if (x[i].<cl) || (x[i].>cu)
-            flag[i]=true
-        end
-    end
-    vec=1:n
-    outid  = sum(flag)>0?vec[flag]:[]
+    flag = (x.<cl) | (x.>cu)
+    vec = 1:n
+    outid  = vec[flag]
     keepid = vec[!flag]
     outval = x[flag]
-    nout   = length(outid)
+    nout = length(outid)
     if method && !mbox
         METHOD = "Outlier detection method using \nthe ideal-fourths based boxplot rule\n"
     elseif method && mbox
@@ -806,7 +804,7 @@ end
 
 #MOM-estimator of location. The default bending constant is 2.24
 function mom{S <: Real}(x::AbstractArray{S}; bend::Real=2.24)
-    n    = length(x)
+    const n = length(x)
     flag = trues(n)
     MED  = median(x, checknan=false)
     MAD  = mad(x)
@@ -819,7 +817,7 @@ function mom{S <: Real}(x::AbstractArray{S}; bend::Real=2.24)
 end
 
 function mom!{S <: Real}(x::AbstractArray{S}; bend::Real=2.24)
-    n    = length(x)
+    const n = length(x)
     flag = trues(n)
     MED  = median!(x, checknan=false)
     MAD  = mad!(x)
@@ -842,7 +840,7 @@ function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05
     elseif seed
         srand(2)
     end
-    n    = length(x)
+    const n = length(x)
     bvec = zeros(nboot)
     temp = zeros(n)
     randid=rand(1:n, n*nboot)
@@ -1424,7 +1422,7 @@ end
 function hd{S <: Real}(x::AbstractArray{S}; q::Real=0.5)
     #Compute the Theil-Sen regression estimator.
     # Only a single predictor is allowed in this version
-    n    = length(x)
+    const n = length(x)
     m1   = ( n + 1 )*q
     m2   = ( n + 1 )*(1 - q)
     vec1 = [1:n]./n
