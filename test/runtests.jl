@@ -38,8 +38,8 @@ q1,q3 = idealf(x)
 
 ob = outbox(x)
 @test ob.nout == 1
-@test ob.outval ≈ 8.62411
 @test ob.outid == [17]
+@test ob.outval[1] ≈ 8.624108
 
 @test msmedse(x) ≈ 0.4708261134886094
 

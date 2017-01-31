@@ -25,6 +25,8 @@ export
     tauloc,
     tauvar,
     outbox,
+    msmedse,
+
     akerd,
     akerd_C,
     rdplot,
@@ -32,7 +34,6 @@ export
     binomci,
     acbinomci,
     near,
-    msmedse,
     stein1_tr,
     stein2_tr,
     sintv2,

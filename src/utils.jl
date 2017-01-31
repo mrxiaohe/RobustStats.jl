@@ -26,20 +26,16 @@ function deleterows!(x::DataArray)
     return output
 end
 
-#Finding duplicated values
-function duplicated{S <: Real}(x::Vector{S})
-    xsort=sort(x)
-    dup=false
-    for i=1:(length(xsort)-1)
-        if xsort[i]==xsort[i+1]
-            dup=true
-            break
+"""`duplicated(x)` returns whether `x` contains any duplicate values"""
+function duplicated(x::AbstractArray)
+    xsort = sort(x)
+    for i = 1:(length(xsort)-1)
+        if xsort[i] == xsort[i+1]
+            return true
         end
     end
-    return dup
+    false
 end
-#duplicated(x::Vector{Int})=duplicated(convert(Vector{Float64}, x))
-#duplicated(x::DataVector)=duplicated(removeNA(x))
 
 function seq(Start::Number, End::Number, increment::Number)
     delta=End-Start
@@ -72,7 +68,7 @@ function trimcibt_loop(x, n, nboot, tr, side, randid, test)
             end
         end
         return sort!(tval), pval
-    else 
+    else
         for i=1:(nboot*n)
             if (i%n)!=0
                 temp[i%n]=x[randid[i]]-xbar
@@ -82,8 +78,8 @@ function trimcibt_loop(x, n, nboot, tr, side, randid, test)
             end
         end
         return sort!(tval)
-    end 
-end 
+    end
+end
 
 function akerd_loop(x, pts, hval, alam)
     npts  = length(pts)
@@ -105,7 +101,7 @@ function akerd_loop(x, pts, hval, alam)
 end
 
 
-#Faster Pearson's r for 
+#Faster Pearson's r for
 function cor!(x, y)
     n=length(x)
     xbar=mean(x); ybar=mean(y)
@@ -163,9 +159,9 @@ function bootindirect{S <: Real, T <: Real, W <: Real}(x::Vector{S}, y::Vector{T
             tempm[j]   = tempmx[j,3] = m[randid[(i-1)*n + j]]
         end
         bvec[i] = (inv(tempx'tempx)'*(tempx'tempm))[2]*(inv(tempmx'tempmx)'*(tempmx'tempy))[3]
-    end 
+    end
     bvec
-end 
+end
 
 
 function mad!(v::AbstractArray)

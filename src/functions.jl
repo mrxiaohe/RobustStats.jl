@@ -303,6 +303,77 @@ function outbox{S <: Real}(x::AbstractArray{S}; mbox::Bool=false, gval::Real=NaN
     outOutput(outid, keepid, outval, nout, METHOD)
 end
 
+
+"""`msmedse(x)`
+
+Return the standard error of the median, computed through the method recommended
+by McKean and Sshrader (1984)."""
+function msmedse{S <: Real}(x::AbstractArray{S})
+    const n = length(x)
+    y = sort(x)
+    if duplicated(y)
+        warn("Tied values detected. Estimate of standard error might be highly inaccurate, even with n large")
+    end
+    q995 = Rmath.qnorm(.995)
+    av::Int = round((n+1)/2 - q995*sqrt(n/4))
+    if av == 0
+        av = 1
+    end
+    top::Int = n-av+1
+    abs((y[top]-y[av])/(2q995))
+end
+
+
+#Compute a 1-alpha confidence interval for p, the probability of success for a binomial dist. using Pratt's method
+#y is a vector of 1's and 0's, x is the number of successes observed among n trials.
+
+function binomci(x::Int, n::Int; alpha::Real=0.05)
+    if x > n
+        error("x must be smaller than or equal to n")
+    elseif x < 0
+        error("x cannot be negative")
+    elseif n == 1
+        error("Something is wrong: number of observations is only 1")
+    end
+    if x != n && x != 0
+        z     = Rmath.qnorm(1-alpha/2)
+        A     = ((x+1)/(n-x)).*((x+1)/(n-x))
+        B     = 81.*(x+1).*(n-x)-9.*n-8
+        C     = (0-3).*z.*sqrt(9.*(x+1).*(n-x).*(9*n+5-z.*z)+n+1)
+        D     = 81.*(x+1).*(x+1)-9.*(x+1).*(2+z*z)+1
+        E     = 1+A.*((B+C)./D).*((B+C)./D).*((B+C)./D)
+        upper = 1/E
+        A     = (x./(n-x-1)).*(x./(n-x-1))
+        B     = 81.*x.*(n-x-1)-9.*n-8
+        C     = 3.*z.*sqrt(9.*x.*(n-x-1).*(9.*n+5-z.*z)+n+1)
+        D     = 81.*x.*x-9.*x.*(2+z.*z)+1
+        E     = 1+A.*((B+C)./D).^3
+        lower = 1/E
+    end
+    if x == 0
+        lower = 0.0
+        upper = 1.0-alpha.^(1/n)
+    end
+    if x == 1
+        lower = 1-(1-alpha/2).^(1/n)
+        upper = 1-(alpha/2).^(1/n)
+    end
+    if x == (n-1)
+        lower = (alpha/2).^(1/n)
+        upper = (1-alpha/2).^(1/n)
+    end
+    if x == n
+        lower = alpha.^(1/n)
+        upper = 1
+    end
+    phat=x/n
+    binomciOutput(phat, [lower, upper], n)
+end
+binomci(x::Vector{Int}; alpha::Real=0.05)=
+sum([x[i]!=0 && x[i]!=1 for i=1:length(x)])>0?error("Data must be 0's and 1's"):binomci(length(x.==1), length(x), alpha=alpha)
+
+
+
 #Compute adaptive kernel density estimate for univariate data
 function akerd{S <: Real}(x::AbstractArray{S}; hval::Real=NaN, aval::Real=0.5, op::Integer=1,
                fr::Real=0.8, pyhat::Bool=false, pts=NaN, plotit=true, xlab="",
@@ -479,71 +550,6 @@ function sint{S <: Real}(x::AbstractArray{S}; alpha::Real=0.05, method::Bool=tru
     output.ci=[low, hi]
     output
 end
-
-
-#Computing standard error of the median using a method recommended by McKean and Shrader (1984)
-function msmedse{S <: Real}(x::AbstractArray{S})
-    if duplicated(x)
-        warn("Tied values detected. Estimate of standard error might be highly inaccurate, even with n large")
-    end
-    y = sort(x)
-    n = length(y)
-    av::Int = round((n+1)./2-Rmath.qnorm(.995).*sqrt(n/4))
-    if av == 0
-        av = 1
-    end
-    top::Int = n-av+1
-    abs((y[top]-y[av])/(2*Rmath.qnorm(.995)))
-end
-
-
-#Compute a 1-alpha confidence interval for p, the probability of success for a binomial dist. using Pratt's method
-#y is a vector of 1's and 0's, x is the number of successes observed among n trials.
-
-function binomci(x::Int, n::Int; alpha::Real=0.05)
-    if x > n
-        error("x must be smaller than or equal to n")
-    elseif x < 0
-        error("x cannot be negative")
-    elseif n == 1
-        error("Something is wrong: number of observations is only 1")
-    end
-    if x != n && x != 0
-        z     = Rmath.qnorm(1-alpha/2)
-        A     = ((x+1)/(n-x)).*((x+1)/(n-x))
-        B     = 81.*(x+1).*(n-x)-9.*n-8
-        C     = (0-3).*z.*sqrt(9.*(x+1).*(n-x).*(9*n+5-z.*z)+n+1)
-        D     = 81.*(x+1).*(x+1)-9.*(x+1).*(2+z*z)+1
-        E     = 1+A.*((B+C)./D).*((B+C)./D).*((B+C)./D)
-        upper = 1/E
-        A     = (x./(n-x-1)).*(x./(n-x-1))
-        B     = 81.*x.*(n-x-1)-9.*n-8
-        C     = 3.*z.*sqrt(9.*x.*(n-x-1).*(9.*n+5-z.*z)+n+1)
-        D     = 81.*x.*x-9.*x.*(2+z.*z)+1
-        E     = 1+A.*((B+C)./D).^3
-        lower = 1/E
-    end
-    if x == 0
-        lower = 0.0
-        upper = 1.0-alpha.^(1/n)
-    end
-    if x == 1
-        lower = 1-(1-alpha/2).^(1/n)
-        upper = 1-(alpha/2).^(1/n)
-    end
-    if x == (n-1)
-        lower = (alpha/2).^(1/n)
-        upper = (1-alpha/2).^(1/n)
-    end
-    if x == n
-        lower = alpha.^(1/n)
-        upper = 1
-    end
-    phat=x/n
-    binomciOutput(phat, [lower, upper], n)
-end
-binomci(x::Vector{Int}; alpha::Real=0.05)=
-sum([x[i]!=0 && x[i]!=1 for i=1:length(x)])>0?error("Data must be 0's and 1's"):binomci(length(x.==1), length(x), alpha=alpha)
 
 
 #Computing a 1-alpha confidence interval for p, the probability of
