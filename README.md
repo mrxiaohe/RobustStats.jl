@@ -128,18 +128,14 @@ See [NIST ITL webpage](http://www.itl.nist.gov/div898/software/dataplot/refman2/
     1.5885279811329132
 
 
-####12. `tauloc`: tau measure of location
+#### `tauloc`, `tauvar`: tau measure of location and scale
 
-(see Yohai and Zamar (JASA, 83, 406-413))
+Robust estimators of location and scale, with breakdown points of 50%.
+
+See Yohai and Zamar _JASA_, vol 83 (1988), pp 406-413 and  Maronna and Zamar _Technometrics_, vol 44 (2002), pp. 307-317.
 
     julia> tauloc(x)       #the named argument `cval` is 4.5 by default.
     1.2696674487629664
-
-
-####13. `tauvar`: the tau measure of scale
-
-(see Yohai and Zamar (JASA, 1988, 83, 406-413) and  Maronna and Zamar (Technometrics, 2002, 44, 307-317))
-
     julia> tauvar(x)
     1.5300804969271078
 
@@ -483,7 +479,10 @@ To choose between Q and S, the authors note that Q has higher statistical effici
 
 
 ## References
-* Percentage bend and related estimators come from Lewis H. Shoemaker  Thomas P. Hettmansperger ["Robust estimates and tests for the one- and two-sample scale models"](https://doi.org/10.1093/biomet/69.1.47) in _Biometrika_ Vol 69 (1982) pp.47-53.
+* Percentage bend and related estimators come from Lewis H. Shoemaker  Thomas P. Hettmansperger ["Robust estimates and tests for the one- and two-sample scale models"](https://doi.org/10.1093/biomet/69.1.47) in _Biometrika_ Vol 69 (1982) pp. 47-53.
+
+* Tau measures of location and scale are from V.J. Yohai and R.H. Zamar ["High Breakdown-Point Estimates of Regression by Means of the Minimization of an Efficient Scale"](http://doi/10.1080/01621459.1988.10478611) in _J. American Statistical Assoc._ vol 83 (1988) pp. 406-413.
+
 
 * Shortest Half-range comes from P.J. Rousseeuw and A.M. Leroy, ["A Robust Scale Estimator Based on the Shortest Half"](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9574.1988.tb01224.x/abstract) in _Statistica Neerlandica_ Vol 42 (1988), pp. 103-116. doi:10.1111/j.1467-9574.1988.tb01224.x . See also R.D. Martin and R. H. Zamar, ["Bias-Robust Estimation of Scale"](http://projecteuclid.org/euclid.aos/1176349161)  in _Annals of Statistics_ Vol 21 (1993) pp. 991-1017.  doi:10.1214/aoe/1176349161
 

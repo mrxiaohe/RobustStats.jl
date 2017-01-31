@@ -210,7 +210,7 @@ function bivar{S <: Real}(x::AbstractArray{S})
     const n = length(x)
     med = median(x)
     MAD = mad(x)
-    q   = Rmath.qnorm(0.75)
+    q = Rmath.qnorm(0.75)
     top = bot = 0.0
     for i = 1:n
         u = abs(x[i]-med)./(9.*q.*MAD)
@@ -223,30 +223,37 @@ function bivar{S <: Real}(x::AbstractArray{S})
 end
 
 
-#Compute the tau measure of location as described in Yohai and Zamar (JASA, 1988, 83, 406-413)
+"""`tauloc(x; cval=4.5)`
+
+Return the tau measure of location of real-valued array `x`, a robust, efficient
+estimator.
+"""
 function tauloc{S <: Real}(x::AbstractArray{S}; cval::Real=4.5)
-    s     = Rmath.qnorm(0.75)*mad(x)
-    med   = median(x, checknan=false)
-    n     = length(x)
-    Wnom  = Wden = 0.0
+    const n = length(x)
+    med = median(x)
+    s = Rmath.qnorm(0.75)*mad(x)
+    Wnom = Wden = 0.0
     for i in 1:n
         y = (x[i]-med)/s
-        temp = (1.0-y*y/cval/cval)*(1.0-y*y/cval/cval)
+        temp = (1.0-(y/cval)^2)^2
         if abs(temp) <= cval
             Wnom += temp*x[i]
             Wden += temp
         end
     end
-    return Wnom/Wden
+    Wnom/Wden
 end
 
 
-#Compute the tau measure of scale as described in Yohai and Zamar (JASA, 1988, 83, 406-413)
+"""`tauvar(x; cval=3.0)`
+
+Return the tau measure of dispersion of real-valued array `x`, a robust, efficient
+estimator.
+"""
 function tauvar{S <: Real}(x::AbstractArray{S}; cval::Real=3.0)
-    x     = x[:]
+    const n = length(x)
     s     = Rmath.qnorm(0.75)*mad(x)
     tloc  = tauloc(x)
-    n     = length(x)
     W     = 0.0
     cval2 = cval*cval
     [W    += min(((x[i]-tloc)/s)*((x[i]-tloc)/s), cval2) for i=1:n]
