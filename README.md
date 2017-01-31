@@ -321,22 +321,25 @@ Compute a bootstrap, .95 confidence interval for the measure of location corresp
 
 
 
-####26. `mom()`
-Compute MOM-estimator of location. The default bending constant is 2.24
+#### `mom` and `mom!`
+Returns a modified one-step M-estimator of location (MOM), which is the unweighted
+mean of all values not more than (bend times the `mad(x)`) away from the data
+median. This M-estimator is based on Huber's ψ.
 
     julia> mom(x)
     1.2596462322222222
 
 
 
-####27. `momci()`
-Compute the bootstrap .95 confidence interval for the MOM-estimator of location based on Huber's Psi.
+#### `momci`
+Compute the bootstrap (1-α) confidence interval for the MOM-estimator of location
+based on Huber's ψ.  Default α=0.05.
 
-    julia> momci(x, nboot=2)
-    Bootstrap .95 confidence interval for the MOM-
-    estimator of location based on Huber's Psi
+    julia> momci(x, seed=2, nboot=2000)
+    Bootstrap .95 confidence interval for the MOM-estimator of location based on Huber's ψ.
 
-     Confidence interval:  0.652212       1.684510
+     Confidence interval:  0.504223       2.120979
+
 
 
 

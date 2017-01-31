@@ -86,7 +86,7 @@ trimse{S <: Real}(x::AbstractArray{S}; tr::Real=0.2) =
 
 """`trimci(x; tr=0.2, alpha=0.05, ...)`
 
-Compute a (1-alpha) confidence interval for the trimmed mean.
+Compute a (1-α) confidence interval for the trimmed mean.
 
 Returns a `RobustStats.testOutput` object.
 """
@@ -827,40 +827,34 @@ function onesampb{S <: Real}(x::AbstractArray{S}; est::Function=onestep, alpha::
 end
 
 
+"""`mom(x; bend=2.24)`
 
-#MOM-estimator of location. The default bending constant is 2.24
+Returns a modified one-step M-estimator of location (MOM), which is the unweighted
+mean of all values not more than (bend times the `mad(x)`) away from the data
+median. This M-estimator is based on Huber's ψ.
+"""
 function mom{S <: Real}(x::AbstractArray{S}; bend::Real=2.24)
-    const n = length(x)
-    flag = trues(n)
-    MED  = median(x, checknan=false)
-    MAD  = mad(x)
-    for i = 1:n
-        if x[i] > MED+bend*MAD || x[i] < MED-bend*MAD
-            flag[i]=false
-        end
-    end
-    mean(x[flag])
+    mom!(copy(x), bend=bend)
 end
 
+"""`mom!(x)`
+
+Like `mom`, but will sort the input vector."""
 function mom!{S <: Real}(x::AbstractArray{S}; bend::Real=2.24)
     const n = length(x)
-    flag = trues(n)
-    MED  = median!(x, checknan=false)
-    MAD  = mad!(x)
-    for i = 1:n
-        if x[i] > MED+bend*MAD || x[i] < MED-bend*MAD
-            flag[i]=false
-        end
-    end
-    mean(x[flag])
+    med = median!(x)
+    MAD = mad(x)
+    not_extreme = abs(x-med) .<= bend*MAD
+    mean(x[not_extreme])
 end
 
 
+"""`momci(x; bend=2.24, alpha=0.05, nboot=2000)`
 
-#Compute a bootstrap, .95 confidence interval for the
-#MOM-estimator of location based on Huber's Psi.
-#The default number of bootstrap samples is nboot=500
-function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05, nboot::Integer=2000, seed=2, method=true)
+Compute a bootstrap, (1-α) confidence interval for the MOM-estimator of location based on Huber's ψ.
+The default number of bootstrap resamplings is nboot=2000."""
+function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05,
+    nboot::Integer=2000, seed=2, method=true)
     if isa(seed, Int)
         srand(seed)
     elseif seed
@@ -869,18 +863,22 @@ function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05
     const n = length(x)
     bvec = zeros(nboot)
     temp = zeros(n)
-    randid=rand(1:n, n*nboot)
+    randid=rand(1:n, n, nboot)
     for i = 1:nboot
-        [temp[j] = x[randid[(i-1)*n+j]] for j=1:n]
+        for j = 1:n
+            temp[j] = x[randid[j,i]]
+        end
         bvec[i]=mom!(temp, bend=bend)
     end
-    low  = round((alpha./2).*nboot) + 1
-    up   = nboot-low + 1
-    bvec = sort!(bvec)
-    METHOD = method? "Bootstrap .95 confidence interval for the MOM-\nestimator of location based on Huber's Psi\n":nothing
+    low::Int = round((alpha/2)*nboot) + 1
+    up = nboot-low + 1
+    sort!(bvec)
     output = testOutput()
-    output.method = METHOD
-    output.ci     = [bvec[low], bvec[up]]
+    output.ci = [bvec[low], bvec[up]]
+    if method
+        x = 1-alpha
+        output.method = "Bootstrap $(x) confidence interval for the MOM-estimator of location based on Huber's ψ.\n"
+    end
     output
 end
 
