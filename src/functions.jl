@@ -263,8 +263,11 @@ end
 
 """`outbox(x; mbox::Bool=false, ...)`
 
-Use a modified boxplot rule based on the ideal fourths (`idealf`). When the named argument 
-`mbox` is set to true, a modification of the boxplot rule suggested by Carling (2000) is used
+Use a modified boxplot rule based on the ideal fourths (`idealf`). When the named argument
+`mbox` is set to true, a modification of the boxplot rule suggested by Carling (2000) is used.
+
+Returns an object with vectors `keepid` and `outid` giving the kept/rejected element numbers,
+`nout` (the number of rejected elements), and `outval`, an array of the outlier values.
 """
 function outbox{S <: Real}(x::AbstractArray{S}; mbox::Bool=false, gval::Real=NaN, method::Bool=true)
     const n = length(x)

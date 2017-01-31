@@ -33,13 +33,15 @@ q1,q3 = idealf(x)
 @test pbvar(x) ≈ 2.0009575278957623
 @test bivar(x) ≈ 1.5885279811329132
 
-@test tauloc(x) ≈ 1.2696674487629664
-@test tauvar(x) ≈ 1.5300804969271078
+@test tauloc(x) ≈ 1.26966525675108
+@test tauvar(x) ≈ 1.53008203090696
 
 ob = outbox(x)
-@test a.nout == 1
-@test a.outval ≈ 8.62411
-@test a.outid == [17]
+@test ob.nout == 1
+@test ob.outval ≈ 8.62411
+@test ob.outid == [17]
+
+@test msmedse(x) ≈ 0.4708261134886094
 
 
 #srand(2)

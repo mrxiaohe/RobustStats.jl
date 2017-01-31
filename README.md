@@ -135,9 +135,9 @@ Robust estimators of location and scale, with breakdown points of 50%.
 See Yohai and Zamar _JASA_, vol 83 (1988), pp 406-413 and  Maronna and Zamar _Technometrics_, vol 44 (2002), pp. 307-317.
 
     julia> tauloc(x)       #the named argument `cval` is 4.5 by default.
-    1.2696674487629664
+    1.2696652567510853
     julia> tauvar(x)
-    1.5300804969271078
+    1.53008203090696
 
 
 #### `outbox`: outlier detection
