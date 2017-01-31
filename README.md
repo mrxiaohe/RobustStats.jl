@@ -163,10 +163,13 @@ by McKean and Schrader (1984).
     0.4708261134886094
 
 
-####16. `binomci`:
-Compute a 1-alpha confidence interval for p, the probability of success for a binomial dist. using Pratt's method y is a vector of 1's and 0's, x is the number of successes observed among n trials.
+#### `binomci(s,n)` or `binomci(x)`:
 
-    julia> binomci(2, 10)           #when number of success and number of total trials are provided. By default alpha=.05
+Compute the (1-α) confidence interval for p, the binomial probability of success, given
+`s` successes in `n` trials. Instead of `s` and `n`, can use a vector `x` whose values are all
+0 and 1, recording failure/success one trial at a time. Returns an object.
+
+    julia> binomci(2, 10)           # # of success and # of total trials are provided. By default alpha=.05
     phat:                0.2000
     confidence interval: 0.0274   0.5562
     Sample size          10
@@ -489,6 +492,8 @@ To choose between Q and S, the authors note that Q has higher statistical effici
 
 * The estimate of the standard error of the median, `msmedse(x)`, is computed by the method of J.W. McKean and
 R.M. Schrader, ["A comparison of methods for studentizing the sample median"](http://dx.doi.org/10.1080/03610918408812413) in _Communications in Statistics: Simulation and Computation_ vol 13 (1984) pp. 751-773. doi:10.1080/03610918408812413
+
+* For Pratt's method of computing binomial confidence intervals, see J.W. Pratt (1968) ["A normal approximation for binomial, F, Beta, and other common, related tail probabilities, II"](http://dx.doi.org/10.1080/01621459.1968.10480939) _J. American Statistical Assoc._, vol 63, pp. 1457- 1483, doi:10.1080/01621459.1968.10480939.  Also R.G. Newcombe ["Confidence Intervals for a binomial proportion"](http://dx.doi.org/10.1002/sim.4780131209) _Stat. in Medicine_ vol 13 (1994) pp 1283-1285, doi:10.1002/sim.4780131209.
 
 * Shortest Half-range comes from P.J. Rousseeuw and A.M. Leroy, ["A Robust Scale Estimator Based on the Shortest Half"](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9574.1988.tb01224.x/abstract) in _Statistica Neerlandica_ Vol 42 (1988), pp. 103-116. doi:10.1111/j.1467-9574.1988.tb01224.x . See also R.D. Martin and R. H. Zamar, ["Bias-Robust Estimation of Scale"](http://projecteuclid.org/euclid.aos/1176349161)  in _Annals of Statistics_ Vol 21 (1993) pp. 991-1017.  doi:10.1214/aoe/1176349161
 

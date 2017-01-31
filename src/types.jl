@@ -15,10 +15,10 @@ type indtOutput
     flag
 end
 
-type idealfOutput
-    lower_quartile
-    upper_quartile
-    method
+type binomciOutput
+    p_hat::Number
+    confint::Array
+    n::Int
 end
 
 type testOutput
@@ -45,12 +45,12 @@ type indirectTestOutput
     p
 end
 
-indirectTestOutput()=indirectTestOutput(nothing, 
-                                        nothing, 
-                                        nothing, 
-                                        nothing, 
-                                        nothing, 
-                                        nothing, 
+indirectTestOutput()=indirectTestOutput(nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing,
                                         nothing,
                                         nothing)
 

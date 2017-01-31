@@ -326,52 +326,69 @@ end
 
 #Compute a 1-alpha confidence interval for p, the probability of success for a binomial dist. using Pratt's method
 #y is a vector of 1's and 0's, x is the number of successes observed among n trials.
+"""`binomci(s, n; alpha=0.05)`
 
-function binomci(x::Int, n::Int; alpha::Real=0.05)
-    if x > n
-        error("x must be smaller than or equal to n")
-    elseif x < 0
-        error("x cannot be negative")
-    elseif n == 1
-        error("Something is wrong: number of observations is only 1")
+Compute the (1-α) confidence interval for p, the binomial probability of success, given
+`s` successes in `n` trials. Returns an object with components `p_hat` (the observed
+fraction of successes) and `confint=[lo,hi]` (the confidence interval). The computation
+uses Pratt's method.
+
+Can also use `binomci(x; alpha=0.05)`, where x is an array consisting only of 0s
+and 1s. It's equivalent to `binomci(sum(x), length(x), alpha=alpha)`.
+"""
+function binomci(s::Int, n::Int; alpha::Real=0.05)
+    if s > n
+        error("binomci requires s≤n (no more successes than trials)")
+    elseif s < 0
+        error("binomci requires s≥0")
+    elseif n <= 1
+        error("binomci requires n≥2 (at least 2 trials)")
     end
-    if x != n && x != 0
-        z     = Rmath.qnorm(1-alpha/2)
-        A     = ((x+1)/(n-x)).*((x+1)/(n-x))
-        B     = 81.*(x+1).*(n-x)-9.*n-8
-        C     = (0-3).*z.*sqrt(9.*(x+1).*(n-x).*(9*n+5-z.*z)+n+1)
-        D     = 81.*(x+1).*(x+1)-9.*(x+1).*(2+z*z)+1
-        E     = 1+A.*((B+C)./D).*((B+C)./D).*((B+C)./D)
-        upper = 1/E
-        A     = (x./(n-x-1)).*(x./(n-x-1))
-        B     = 81.*x.*(n-x-1)-9.*n-8
-        C     = 3.*z.*sqrt(9.*x.*(n-x-1).*(9.*n+5-z.*z)+n+1)
-        D     = 81.*x.*x-9.*x.*(2+z.*z)+1
-        E     = 1+A.*((B+C)./D).^3
-        lower = 1/E
-    end
-    if x == 0
-        lower = 0.0
+    p_hat=s/n
+    if s == 0
         upper = 1.0-alpha.^(1/n)
+        return binomciOutput(p_hat, [0,upper], n)
     end
-    if x == 1
+    if s == 1
         lower = 1-(1-alpha/2).^(1/n)
         upper = 1-(alpha/2).^(1/n)
+        return binomciOutput(p_hat, [lower, upper], n)
     end
-    if x == (n-1)
+    if s == (n-1)
         lower = (alpha/2).^(1/n)
         upper = (1-alpha/2).^(1/n)
+        return binomciOutput(p_hat, [lower, upper], n)
     end
-    if x == n
+    if s == n
         lower = alpha.^(1/n)
         upper = 1
+        return binomciOutput(p_hat, [lower, upper], n)
     end
-    phat=x/n
-    binomciOutput(phat, [lower, upper], n)
-end
-binomci(x::Vector{Int}; alpha::Real=0.05)=
-sum([x[i]!=0 && x[i]!=1 for i=1:length(x)])>0?error("Data must be 0's and 1's"):binomci(length(x.==1), length(x), alpha=alpha)
 
+    z     = Rmath.qnorm(1-alpha/2)
+    A     = ((s+1)/(n-s))*((s+1)/(n-s))
+    B     = 81.*(s+1)*(n-s)-9.*n-8
+    C     = (0-3)*z*sqrt(9.*(s+1)*(n-s)*(9*n+5-z^2)+n+1)
+    D     = 81.*(s+1)^2-9.*(s+1)*(2+z^2)+1
+    E     = 1+A*((B+C)/D)^3
+    upper = 1/E
+    A     = (s/(n-s-1))*(s/(n-s-1))
+    B     = 81.*s*(n-s-1)-9.*n-8
+    C     = 3.*z*sqrt(9.*s*(n-s-1)*(9.*n+5-z^2)+n+1)
+    D     = 81.*s^2-9.*s*(2+z^2)+1
+    E     = 1+A*((B+C)/D)^3
+    lower = 1/E
+    binomciOutput(p_hat, [lower, upper], n)
+end
+
+function binomci(x::Vector{Int}; alpha::Real=0.05)
+    for i = 1:length(x)
+        if x[i]<0 || x[i] > 1
+            error("x vector must contain only values 0 or 1.")
+        end
+    end
+    binomci(sum(x), length(x), alpha=alpha)
+end
 
 
 #Compute adaptive kernel density estimate for univariate data

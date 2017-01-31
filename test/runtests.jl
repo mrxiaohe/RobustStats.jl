@@ -42,6 +42,10 @@ ob = outbox(x)
 @test ob.outval[1] ≈ 8.624108
 
 @test msmedse(x) ≈ 0.4708261134886094
+bci = binomci(2, 10)
+@test bci.p_hat == 2/10
+@test bci.confint[1] ≈ 0.02735907527075918
+@test bci.confint[2] ≈ 0.5562210572204956
 
 
 #srand(2)
