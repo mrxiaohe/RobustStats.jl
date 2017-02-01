@@ -164,15 +164,6 @@ function bootindirect{S <: Real, T <: Real, W <: Real}(x::Vector{S}, y::Vector{T
 end
 
 
-function mad!(v::AbstractArray)
-    v=copy(v)
-    center = median!(v, checknan=false)
-    for i in 1:length(v)
-        v[i] = abs(v[i]-center)
-    end
-    1.4826 * median!(v, checknan=false)
-end
-
 
 function t1waycore(args...)
     x, grp, tr, method = args[1], args[2], args[3], args[4]
