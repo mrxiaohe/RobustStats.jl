@@ -372,6 +372,7 @@ function binomci(s::Int, n::Int; alpha::Real=0.05)
     D     = 81.*(s+1)^2-9.*(s+1)*(2+z^2)+1
     E     = 1+A*((B+C)/D)^3
     upper = 1/E
+
     A     = (s/(n-s-1))*(s/(n-s-1))
     B     = 81.*s*(n-s-1)-9.*n-8
     C     = 3.*z*sqrt(9.*s*(n-s-1)*(9.*n+5-z^2)+n+1)
@@ -380,6 +381,7 @@ function binomci(s::Int, n::Int; alpha::Real=0.05)
     lower = 1/E
     binomciOutput(p_hat, [lower, upper], n)
 end
+
 
 function binomci(x::Vector{Int}; alpha::Real=0.05)
     for i = 1:length(x)
@@ -391,23 +393,34 @@ function binomci(x::Vector{Int}; alpha::Real=0.05)
 end
 
 
+"""`_estimate_dispersion(x)`
+
+Estimate dispersion by the following methods. Return the first value that gives
+a non-zero dispersion. Each are normalized to 1.0 for Gaussian distributions:
+
+1. Normalized median absolute deviation `mad`,
+1. Normalized inter-quartile range `iqrn`,
+1. Normalized winsorized variance `winvar`."""
+function _estimate_dispersion{S <: Real}(x::AbstractArray{S})
+    m =  mad(x)
+    m > 0 && return m
+
+    m = iqrn(x)
+    m > 0 && return m
+
+    m =  sqrt(winvar(x)./0.4129)
+    m > 0 && return m
+
+    error("All measures of dispersion are equal to 0")
+end
+
 #Compute adaptive kernel density estimate for univariate data
 function akerd{S <: Real}(x::AbstractArray{S}; hval::Real=NaN, aval::Real=0.5, op::Integer=1,
                fr::Real=0.8, pyhat::Bool=false, pts=NaN, plotit=true, xlab="",
                ylab="", title="", color="black", plottype="solid")
     xsort =  sort(x)
     if op == 1
-        m =  mad(x)
-        if m == 0.0
-            temp = idealf(x, method=false)
-            m = (temp.upper_quartile-temp.lower_quartile)/(Rmath.qnorm(0.75)-Rmath.qnorm(0.25))
-        end
-        if m  == 0.0
-            m =  sqrt(winvar(x)./0.4129)
-        end
-        if m  == 0.0
-            error("All measures of dispersion are equal to 0")
-        end
+        m = _estimate_dispersion(x)
         fhat  = rdplot(x, pyhat=true, plotit=false, fr=fr, pyhat=true)
         if m  >  0.0
             [fhat[i] = fhat[i]/(2.0*fr*m) for i=1:length(fhat)]
@@ -478,11 +491,11 @@ function rdplot{S <: Real}(x::AbstractArray{S}; fr::Real=NaN, plotit=true,
     nx   = length(x)
     npts = length(pts)
     rmd  = [sum(near(x, pts[i], fr))*1.0 for i=1:npts]
-    MAD  = mad!(x)
+    MAD  = mad(x)
     if MAD != 0.0
         [rmd[i] = rmd[i]/(2*fr*MAD) for i=1:npts]
     end
-    [rmd[i] = rmd[i]/nx i=1:npts]
+    [rmd[i] = rmd[i]/nx for i=1:npts]
     if plotit
         index = sortperm(pts);
         p     = FramedPlot()
@@ -504,30 +517,14 @@ function rdplot{S <: Real}(x::AbstractArray{S}; fr::Real=NaN, plotit=true,
 end
 
 
-#Determine which values in x are near pt
-function near{S <: Real}(x::AbstractArray{S}, pt::Real, fr::Real=1.0)
-    m = mad!(x)
-    if m == 0.0
-        temp = idealf(x, method=false)
-        m = (temp.upper_quartile-temp.lower_quartile)/(Rmath.qnorm(0.75)-Rmath.qnorm(.25))
-    end
-    if m == 0.0
-        m = sqrt(winvar(x)/0.4129)
-    end
-    if m == 0.0
-        error("All measures of dispersion are equal to 0")
-    end
-    n = length(x)
-    dflag = falses(n)
-    fr_m = fr*m
-    #[dflag[i]=abs(x[i]-pt) <= fr_m ?true:false for i=1:n]
-    for i = 1:n
-        if abs(x[i]-pt) <= fr_m
-            dflag[i] = true
-        end
-    end
+"""`near(x, pt, fr=1.0)`
 
-    return dflag
+Determine which values in `x` are near `pt`. Return a BitArray giving whether
+each value of `x` is within `fr*m` of `pt`, where `m` is the dispersion measure
+returned by `_estimate_dispersion(x)`"""
+function near{S <: Real}(x::AbstractArray{S}, pt::Real, fr::Real=1.0)
+    m = _estimate_dispersion(x)
+    return abs(x-pt) .<= fr*m
 end
 
 
