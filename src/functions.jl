@@ -773,33 +773,40 @@ function sintv2{S <: Real}(x::AbstractArray{S}; alpha::Real=0.05, nullval::Real=
 end
 
 
-#Evaluate Huber's Psi function for each value in the vector x.
-#The bending constant defaults to 1.28
-hpsi{S <: Real}(x::AbstractArray{S}, bend::Real=1.28)=[abs(x[i])<=bend?x[i]:bend*sign(x[i]) for i=1:length(x)]
+"""`hpsi(x, bend=1.28)`
+
+Evaluate Huber's ψ function for each value in the vector `x`.
+ψ(x) = max( min(x,bend), -bend)."""
+function hpsi{S <: Real}(x::AbstractArray{S}, bend::Real=1.28)
+    ψ = Array(x)
+    ψ[x .> bend] = bend
+    ψ[x .< -bend] = -bend
+    ψ
+end
 
 
-#Compute one-step M-estimator of location using Huber's Psi.
-#The default bending constant is 1.28
+"""`onestep(x, bend=1.28)`
+
+Compute one-step M-estimator of location using Huber's ψ."""
 function onestep{S <: Real}(x::AbstractArray{S}, bend::Real=1.28)
-    MED = median(x, checknan=false)
+    MED = median(x)
     MAD = mad(x)
-    n   = length(x)
-    y   = [(x[i]-MED)/MAD for i = 1:n]
-    A   = sum(hpsi(y, bend))
-    B   = 0
-    [B  += abs(y[i]) <= bend ? 1:0 for i=1:n]
+    y = (x-MED)/MAD
+    A = sum(hpsi(y, bend))
+    B = sum(abs(y) .<= bend)
     return MED + MAD*A/B
 end
 
 #Compute a bootstrap, .95 confidence interval for the
 #measure of location corresponding to the argument est.
 #By default, a one-step
-#M-estimator of location based on Huber's Psi is used.
+#M-estimator of location based on Huber's ψ is used.
 #The default number of bootstrap samples is nboot=500
 #
 #nv=null value when  computing a p-value
 
-function onesampb{S <: Real}(x::AbstractArray{S}; est::Function=onestep, alpha::Real=0.05, nboot::Integer=2000, seed=2, nv::Real=0)
+function onesampb{S <: Real}(x::AbstractArray{S}; est::Function=onestep,
+    alpha::Real=0.05, nboot::Integer=2000, seed=2, nv::Real=0)
     if isa(seed, Int)
         srand(seed)
     elseif seed
@@ -831,7 +838,7 @@ end
 
 Returns a modified one-step M-estimator of location (MOM), which is the unweighted
 mean of all values not more than (bend times the `mad(x)`) away from the data
-median. This M-estimator is based on Huber's ψ.
+median.
 """
 function mom{S <: Real}(x::AbstractArray{S}; bend::Real=2.24)
     mom!(copy(x), bend=bend)
@@ -881,7 +888,6 @@ function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05
     end
     output
 end
-
 
 #Contaminated normal distribution
 function cnorm(n::Integer; epsilon::Real=0.1, k::Real=10)

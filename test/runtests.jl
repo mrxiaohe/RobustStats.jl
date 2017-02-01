@@ -49,6 +49,7 @@ bci = binomci(2, 10)
 @test bci.confint[2] ≈ 0.5562210572204956
 
 
+@test onestep(x) ≈ 1.3058109021286803
 @test mom(x) ≈ 1.2596462322222222
 mci = momci(x, seed=2, nboot=2000).ci
 @test mci[1] ≈ 0.5042229275
@@ -216,5 +217,5 @@ for N in [2,3,4,5,6,7,8,9,10,11,12,15,20,25,50,100,151,200,225,250,299,350,399,5
         @test Q ≈ scaleQ!(a)
         @test Q ≈ scaleQ!(a) # scaleQ! sorts the array only, so result is unchanged
     end
-    println("Success on $NTESTS scaleQ and scaleS tests with size $(N)")
+    # println("Success on $NTESTS scaleQ and scaleS tests with size $(N)")
 end

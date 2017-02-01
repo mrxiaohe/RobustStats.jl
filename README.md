@@ -301,17 +301,29 @@ Confidence interval for the median using the Hettmansperger-Sheather interpolati
 
 
 
-####24. `onestep()`
-Compute one-step M-estimator of location using Huber's Psi. The default bending constant is 1.28.
+#### `hpsi`
+Compute Huber's ψ. The default bending constant is 1.28.
+
+    julia> hpsi(x)
+    20-element Array{Float64,1}:
+    1.28
+    0.787659
+    0.317322
+    0.972165
+    0.400421
+    ...
+
+
+#### `onestep`
+Compute one-step M-estimator of location using Huber's ψ. The default bending constant is 1.28.
 
     julia> onestep(x)
-    1.384070801414857
-
+    1.3058109021286803
 
 
 
 ####25. `onesampb()`
-Compute a bootstrap, .95 confidence interval for the measure of location corresponding to the argument est. By default, a one-step M-estimator of location based on Huber's Psi is used. The default number of bootstrap samples is nboot=2000. nv=0 when computing a p-value.
+Compute a bootstrap, .95 confidence interval for the measure of location corresponding to the argument est. By default, a one-step M-estimator of location based on Huber's ψ is used. The default number of bootstrap samples is nboot=2000. nv=0 when computing a p-value.
 
     julia> onesampb(x)
     Estimate:             1.384071
@@ -324,7 +336,7 @@ Compute a bootstrap, .95 confidence interval for the measure of location corresp
 #### `mom` and `mom!`
 Returns a modified one-step M-estimator of location (MOM), which is the unweighted
 mean of all values not more than (bend times the `mad(x)`) away from the data
-median. This M-estimator is based on Huber's ψ.
+median.
 
     julia> mom(x)
     1.2596462322222222
