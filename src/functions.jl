@@ -416,33 +416,30 @@ end
 
 #Compute adaptive kernel density estimate for univariate data
 function akerd{S <: Real}(x::AbstractArray{S}; hval::Real=NaN, aval::Real=0.5, op::Integer=1,
-               fr::Real=0.8, pyhat::Bool=false, pts=NaN, plotit=true, xlab="",
-               ylab="", title="", color="black", plottype="solid")
-    xsort =  sort(x)
+               fr::Real=0.8, pts=NaN, plotit=true, xlab="",
+               ylab="", title="", color="black")
+    if isnan(pts)
+       pts = x[:]
+    end
+    pts  = sort!(pts)
+
     if op == 1
         m = _estimate_dispersion(x)
-        fhat  = rdplot(x, pyhat=true, plotit=false, fr=fr, pyhat=true)
-        if m  >  0.0
-            [fhat[i] = fhat[i]/(2.0*fr*m) for i=1:length(fhat)]
-        end
+        fhat  = rdplot(x, pts=pts, plotit=false, fr=fr)
+    # elseif op == 2
+    #     init = kde(x) ## NOT DEFINED!
+    #     fhat = init.density
+    #     x    = init.x
     end
-    if op == 2
-        init = kde(x)
-        fhat = init.density
-        x    = init.x
-    end
-    n = length(x)
+    const n = length(x)
     if isnan(hval)
-        sig  = std(x)
-        temp = idealf(x, method=false)
-        iqr  = (temp.upper_quartile-temp.lower_quartile)/1.34
-        A    = min(sig, iqr)
-        A    = A==0.0? winstd(x)/0.64:A
+        A = min(std(x), iqrn(x))
+        if A==0.0; A = winstd(x)/0.64; end
         hval = 1.06*A/n^0.2
     end
     gm = 0.0
     gm_int = 0
-    nfhat = length(fhat)
+    const nfhat = length(fhat)
     for i = 1:nfhat
         if fhat[i] > 0.0
             gm += log(fhat[i])
@@ -450,70 +447,38 @@ function akerd{S <: Real}(x::AbstractArray{S}; hval::Real=NaN, aval::Real=0.5, o
         end
     end
     gm = exp(gm/gm_int)
-    alam = zeros(n)
-    [alam[i] = (fhat[i]/gm)^(0-aval) for i=1:nfhat]
-    if isnan(pts)
-        pts = x[:]
-    end
-    pts  = sort!(pts)
+    alam = (fhat/gm).^(-aval)
     dhat = akerd_loop(x, pts, hval, alam)
     if plotit
-        p = FramedPlot()
-        add(p, Curve(pts, dhat, "color", color, "type", plottype))
-        if title != nothing
-            setattr(p, "title", title)
-        end
-        if xlab != nothing
-            setattr(p, "xlabel", xlab)
-        end
-        if ylab != nothing
-            setattr(p, "ylabel", ylab)
-        end
-        Winston.tk(p)
+        plot(pts, dhat, color=color)
+        plt[:title](title)
+        plt[:xlabel](xlab)
+        plt[:ylabel](ylab)
     end
-    if pyhat
-        return dhat
-    end
+    dhat
 end
 
 #Expected frequency curve. fr controls amount of smoothing, theta is the azimuthal direction and
 #phi the colatitude
-function rdplot{S <: Real}(x::AbstractArray{S}; fr::Real=NaN, plotit=true,
-                           theta=50, phi=25, expand=0.5, pyhat=false, pts=NaN,
-                           title="", xlab="", ylab="", color="black", plottype="solid")
-    x = x[:]
-    if isnan(fr)
-        fr = 0.8
-    end
-    if isnan(pts)
-        pts = x[:]
-    end
-    nx   = length(x)
-    npts = length(pts)
-    rmd  = [sum(near(x, pts[i], fr))*1.0 for i=1:npts]
-    MAD  = mad(x)
+function rdplot{S <: Real}(x::AbstractArray{S}; fr::Real=NaN, pts=NaN,
+                           plotit=true, title="", xlab="", ylab="", color="black")
+    if isnan(fr); fr = 0.8; end
+    if isnan(pts); pts = x[:];end
+    rmd = [sum(near(x, pts[i], fr))*1.0 for i=1:length(pts)]
+    rmd /= length(x)
+    MAD = mad(x)
     if MAD != 0.0
-        [rmd[i] = rmd[i]/(2*fr*MAD) for i=1:npts]
+        rmd /= 2fr*MAD
     end
-    [rmd[i] = rmd[i]/nx for i=1:npts]
     if plotit
         index = sortperm(pts);
-        p     = FramedPlot()
-        add(p, Curve(pts[index], rmd[index], "color", color, "type", plottype))
-        if title != nothing
-            setattr(p, "title", title)
-        end
-        if xlab != nothing
-            setattr(p, "xlabel", xlab)
-        end
-        if ylab != nothing
-            setattr(p, "ylabel", ylab)
-        end
-        Winston.tk(p)
+        clf()
+        plot(pts[index], rmd[index], color=color)
+        plt[:title](title)
+        plt[:xlabel](xlab)
+        plt[:ylabel](ylab)
     end
-    if pyhat
-        return rmd
-    end
+    rmd
 end
 
 
