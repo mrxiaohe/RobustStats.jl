@@ -154,8 +154,7 @@ Use a modified boxplot rule based on the ideal fourths; when the named argument 
     Non-outlier ID:     1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20
 
 
-#### `msmedse`:
-
+#### `msmedse`: Standard error of the median
 Return the standard error of the median, computed through the method recommended
 by McKean and Schrader (1984).
 
@@ -163,7 +162,7 @@ by McKean and Schrader (1984).
     0.4708261134886094
 
 
-#### `binomci(s,n)` or `binomci(x)`:
+#### `binomci(s,n)` or `binomci(x)`: Binomial confidence interval
 
 Compute the (1-α) confidence interval for p, the binomial probability of success, given
 `s` successes in `n` trials. Instead of `s` and `n`, can use a vector `x` whose values are all
@@ -232,7 +231,7 @@ if we add `plotit=true`, we get a kernel density plot of the effects derived fro
 
 
 
-####18. `sint()`
+####18a. `sint()`
 Computing the confidence interval for the median.
 
     julia> sint(x)
