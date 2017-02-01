@@ -30,7 +30,6 @@ export
     msmedse,
 
     akerd,
-    akerd_C,
     rdplot,
     sint,
     binomci,
