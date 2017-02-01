@@ -1,3 +1,13 @@
+_IQR_SCALE = (Rmath.qnorm(0.75)-Rmath.qnorm(0.25))
+"""`iqrn(x)`
+
+Return the *normalized* inter-quartile range, using ideal fourths (`idealf`),
+or IQR/1.3784. This choice of normalization gives `iqrn==1` for Gaussian data."""
+function iqrn(x::AbstractArray)
+    lower_quartile, upper_quartile = idealf(x)
+    (upper_quartile-lower_quartile)/_IQR_SCALE
+end
+
 function shorthrange_and_location!(x::AbstractArray, normalize::Bool=false)
     sort!(x)
 
