@@ -83,23 +83,6 @@ Can be used for paired groups if `x` consists of the difference scores of two pa
 
 
 
-#### `stein1`, `stein2`: Two steps of Stein's method
-
-These are undocumented. If you know what this means and can help us, please contact the maintainers.
-
-    julia> stein1(x, 1)
-    41
-    julia> srand(1)         #set seed
-    julia> x2=rnorm(21);    #suppose additional 21 data points were collected.
-    julia> stein2(x, x2)
-    df:        19
-    estimate:  0.8441066102423266
-    confint:   [-3.65043, 5.33865]
-    statistic: 2.516970580783766
-    crit:      2.093024054408309
-    pval:      0.020975586092444765
-
-
 #### `idealf`: the ideal fourths:
 
 Returns `(q1,q3)`, the 1st and 3rd quartiles. These will be a weighted sum of
@@ -248,43 +231,6 @@ Computing the confidence interval for the median.
 
      Confidence interval:  0.547483       2.375232
 
-
-
-####21. `stein1_tr()`
-Extension of Stein's method based on the trimmed mean.
-
-    julia> stein1_tr(x, 0.2)
-    89
-
-
-
-####22. `stein2_tr()`
-Extension of the 2nd stage of Stein's method based on the trimmed mean.
-
-    julia> stein2_tr(x, x2)
-    Extension of the 2nd stage of Stein's method based on the trimmed mean
-
-    Statistic:            3.154993
-    Critical value:       2.200985
-
-
-This function is able to handle multiple dependent groups. Suppose that the original dataset contained 4 dependent groups and the sample size is 5 (`xold`), and we collected more data (`xnew`).
-
-    julia> srand(2)
-    julia> xnew = rand(6, 4)
-    julia> xold = reshape(x, 5, 4)
-    julia> stein2_tr(xold, xnew)
-
-    Extension of the 2nd stage of Stein's method based on the trimmed mean
-
-     Statistic             Group 1  Group 2  Statistic
-                                 1        2  -0.933245
-                                 1        3   0.291014
-                                 1        4  -0.949618
-                                 2        3   1.212577
-                                 2        4  -0.608510
-                                 3        4  -0.649426
-     Critical value:       10.885867
 
 
 ####23. `sintv2()`
@@ -470,6 +416,58 @@ Two examples are shown below to demonstrate the two ways of specifying data:
     Degrees of freedom:   2.00   8.11
     Statistic:            28.990510
     p value:              0.000202
+
+### Unmaintained functions
+The functions in this section are undocumented. If you know what any of them mean and can help us to document, fix, and/or improve the code, please contact the maintainers.
+
+
+#### `stein1`, `stein2`: Two steps of Stein's method
+
+    julia> stein1(x, 1)
+    41
+    julia> srand(1)         #set seed
+    julia> x2=rnorm(21);    #suppose additional 21 data points were collected.
+    julia> stein2(x, x2)
+    df:        19
+    estimate:  0.8441066102423266
+    confint:   [-3.65043, 5.33865]
+    statistic: 2.516970580783766
+    crit:      2.093024054408309
+    pval:      0.020975586092444765
+
+#### `stein1_tr()`, `stein2_tr()`
+Extension of Stein's method based on the trimmed mean.
+
+    julia> stein1_tr(x, 0.2)
+    89
+
+    julia> stein2_tr(x, x2)
+    Extension of the 2nd stage of Stein's method based on the trimmed mean
+
+    Statistic:            3.154993
+    Critical value:       2.200985
+
+
+This function is able to handle multiple dependent groups. Suppose that the original dataset contained 4 dependent groups and the sample size is 5 (`xold`), and we collected more data (`xnew`).
+
+    julia> srand(2)
+    julia> xnew = rand(6, 4)
+    julia> xold = reshape(x, 5, 4)
+    julia> stein2_tr(xold, xnew)
+
+    Extension of the 2nd stage of Stein's method based on the trimmed mean
+
+     Statistic             Group 1  Group 2  Statistic
+                                 1        2  -0.933245
+                                 1        3   0.291014
+                                 1        4  -0.949618
+                                 2        3   1.212577
+                                 2        4  -0.608510
+                                 3        4  -0.649426
+     Critical value:       10.885867
+
+
+
 
 ## Estimators from other sources
 ###Location estimators:

@@ -20,8 +20,6 @@ export
     winvar,
     trimse,
     trimci,
-    stein1,
-    stein2,
     idealf,
     pbvar,
     bivar,
@@ -35,8 +33,6 @@ export
     akerd,
     rdplot,
     sint,
-    stein1_tr,
-    stein2_tr,
     sintv2,
     seq,
     cnorm,
@@ -62,7 +58,13 @@ export
     scaleS,
     scaleS!,
     scaleQ,
-    scaleQ!
+    scaleQ!,
+
+# Below here in unmaintained.jl
+    stein1,
+    stein2,
+    stein1_tr,
+    stein2_tr
 
 
 include("types.jl")
@@ -72,4 +74,5 @@ include("functions.jl")
 include("location_estimators.jl")
 include("dispersion_estimators.jl")
 include("data.jl")
+include("unmaintained.jl")
 end
