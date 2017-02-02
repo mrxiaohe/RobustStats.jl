@@ -324,8 +324,6 @@ function msmedse{S <: Real}(x::AbstractArray{S})
 end
 
 
-#Compute a 1-alpha confidence interval for p, the probability of success for a binomial dist. using Pratt's method
-#y is a vector of 1's and 0's, x is the number of successes observed among n trials.
 """`binomci(s, n; alpha=0.05)`
 
 Compute the (1-α) confidence interval for p, the binomial probability of success, given
@@ -334,8 +332,7 @@ fraction of successes) and `confint=[lo,hi]` (the confidence interval). The comp
 uses Pratt's method.
 
 Can also use `binomci(x; alpha=0.05)`, where x is an array consisting only of 0s
-and 1s. It's equivalent to `binomci(sum(x), length(x), alpha=alpha)`.
-"""
+and 1s. It's equivalent to `binomci(sum(x), length(x), alpha=alpha)`."""
 function binomci(s::Int, n::Int; alpha::Real=0.05)
     if s > n
         error("binomci requires s≤n (no more successes than trials)")
@@ -348,18 +345,15 @@ function binomci(s::Int, n::Int; alpha::Real=0.05)
     if s == 0
         upper = 1.0-alpha.^(1/n)
         return binomciOutput(p_hat, [0,upper], n)
-    end
-    if s == 1
+    elseif s == 1
         lower = 1-(1-alpha/2).^(1/n)
         upper = 1-(alpha/2).^(1/n)
         return binomciOutput(p_hat, [lower, upper], n)
-    end
-    if s == (n-1)
+    elseif s == (n-1)
         lower = (alpha/2).^(1/n)
         upper = (1-alpha/2).^(1/n)
         return binomciOutput(p_hat, [lower, upper], n)
-    end
-    if s == n
+    elseif s == n
         lower = alpha.^(1/n)
         upper = 1
         return binomciOutput(p_hat, [lower, upper], n)
@@ -390,6 +384,61 @@ function binomci(x::Vector{Int}; alpha::Real=0.05)
         end
     end
     binomci(sum(x), length(x), alpha=alpha)
+end
+
+
+
+"""`acbinomci(s, n; alpha=0.05)`
+
+Compute the (1-α) confidence interval for p, the binomial probability of success, given
+`s` successes in `n` trials. Returns an object with components `p_hat` (the observed
+fraction of successes) and `confint=[lo,hi]` (the confidence interval). The computation
+uses a generalization of the Agresti-Coull  method that was studied by Brown, Cai, & DasGupta.
+
+Can also use `acbinomci(x; alpha=0.05)`, where `x` is an array consisting only of 0s
+and 1s. It's equivalent to `acbinomci(sum(x), length(x), alpha=alpha)`."""
+function acbinomci(s::Int, n::Int; alpha::Real=0.05)
+    if s > n
+        error("acbinomci requires s≤n (no more successes than trials)")
+    elseif s < 0
+        error("acbinomci requires s≥0")
+    elseif n <= 1
+        error("acbinomci requires n≥2 (at least 2 trials)")
+    end
+    p_hat=s/n
+
+    if s == 0
+        upper = 1.0-alpha.^(1/n)
+        return binomciOutput(p_hat, [0, upper], n)
+    elseif s == 1
+        lower = 1-(1-alpha/2)^(1/n)
+        upper = 1-(alpha/2)^(1/n)
+        return binomciOutput(p_hat, [lower, upper], n)
+    elseif s == (n-1)
+        lower = (alpha/2)^(1/n)
+        upper = (1-alpha/2)^(1/n)
+        return binomciOutput(p_hat, [lower, upper], n)
+    elseif s == n
+        lower = alpha^(1/n)
+        upper = 1
+        return binomciOutput(p_hat, [lower, upper], n)
+    end
+
+    cr    = Rmath.qnorm(1-alpha/2)
+    ntil  = n+cr^2
+    ptil  = (s+cr^2/2)/ntil
+    lower = ptil-cr*sqrt(ptil*(1-ptil)/ntil)
+    upper = ptil+cr*sqrt(ptil*(1-ptil)/ntil)
+    binomciOutput(p_hat, [lower, upper], n)
+end
+
+function acbinomci(x::Vector{Int}; alpha::Real=0.05)
+    for i = 1:length(x)
+        if x[i]<0 || x[i] > 1
+            error("x vector must contain only values 0 or 1.")
+        end
+    end
+    acbinomci(sum(x), length(x), alpha=alpha)
 end
 
 
@@ -529,48 +578,6 @@ function sint{S <: Real}(x::AbstractArray{S}; alpha::Real=0.05, method::Bool=tru
     output.ci=[low, hi]
     output
 end
-
-
-#Computing a 1-alpha confidence interval for p, the probability of
-#success for a binomial distribution, using a generalization of the
-#Agresti-Coull  method that was studied by Brown, Cai DasGupta
-#(Annals of Statistics, 2002, 30, 160-201.)
-function acbinomci(x::Int, n::Int; alpha::Real=0.05)
-    if x > n
-        error("x must be smaller than or equal to n")
-    elseif x < 0
-        error("x cannot be negative")
-    elseif n == 1
-        error("Something is wrong: number of observations is only 1")
-    end
-    if x != n && x != 0
-        cr    = Rmath.qnorm(1-alpha/2)
-        ntil  = n+cr.*cr
-        ptil  = (x+cr.*cr./2)./ntil
-        lower = ptil-cr.*sqrt(ptil.*(1-ptil)./ntil)
-        upper = ptil+cr.*sqrt(ptil.*(1-ptil)./ntil)
-    end
-    if x == 0
-        lower = 0.0
-        upper = 1.0-alpha.^(1/n)
-    end
-    if x == 1
-        lower = 1-(1-alpha/2).^(1/n)
-        upper = 1-(alpha/2).^(1/n)
-    end
-    if x == (n-1)
-        lower = (alpha/2).^(1/n)
-        upper = (1-alpha/2).^(1/n)
-    end
-    if x == n
-        lower = alpha.^(1/n)
-        upper = 1
-    end
-    phat = x/n
-    binomciOutput(phat, [lower, upper], n)
-end
-acbinomci(x::Vector{Int}; alpha::Real=0.05)=
-sum([x[i]!=0 && x[i]!=1 for i=1:length(x)])>0?error("Data must be 0's and 1's"):acbinomci(length(x.==1), length(x), alpha=alpha)
 
 
 #Extension of Stein's method based on the trimmed mean.

@@ -162,23 +162,32 @@ by McKean and Schrader (1984).
     0.4708261134886094
 
 
-#### `binomci(s,n)` or `binomci(x)`: Binomial confidence interval
+#### `binomci()`, `acbinomci()`: Binomial confidence interval
 
 Compute the (1-α) confidence interval for p, the binomial probability of success, given
 `s` successes in `n` trials. Instead of `s` and `n`, can use a vector `x` whose values are all
 0 and 1, recording failure/success one trial at a time. Returns an object.
 
+`binomci` uses Pratt's method;
+`acbinomci` uses a generalization of the Agresti-Coull method that was studied by Brown, Cai, & DasGupta.
+
     julia> binomci(2, 10)           # # of success and # of total trials are provided. By default alpha=.05
-    phat:                0.2000
+    p_hat:               0.2000
     confidence interval: 0.0274   0.5562
     Sample size          10
 
 
     julia> trials=[1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0]
-    julia> binomci(trials, 0.01)    #trial results are provided in array form consisting of 1's and 0's. Alpha=.01
-    phat:    0.5
-    confint: [0.176811, 0.849496]
-    n:       12
+    julia> binomci(trials, alpha=0.01)    #trial results are provided in array form consisting of 1's and 0's.
+     p_hat:               0.5000
+     confidence interval: 0.1768   0.8495
+     Sample size          12
+
+    julia> acbinomci(2, 10)           # # of success and # of total trials are provided. By default alpha=.05
+    p_hat:               0.2000
+    confidence interval: 0.0459   0.5206
+    Sample size          10
+
 
 
 ####17. `akerd`:
@@ -238,16 +247,6 @@ Computing the confidence interval for the median.
     Confidence interval for the median
 
      Confidence interval:  0.547483       2.375232
-
-
-
-####19. `acbinomci()`
-Compute a 1-alpha confidence interval for p, the probability of success for a binomial dist using a generalization of the Agresti-Coull  method that was studied by Brown, Cai DasGupta.
-
-    julia> acbinomci(2, 10)           #when number of success and number of total trials are provided. By default alpha=.05
-    phat:                0.2000
-    confidence interval: 0.0459   0.5206
-    Sample size          10
 
 
 
@@ -508,6 +507,8 @@ To choose between Q and S, the authors note that Q has higher statistical effici
 R.M. Schrader, ["A comparison of methods for studentizing the sample median"](http://dx.doi.org/10.1080/03610918408812413) in _Communications in Statistics: Simulation and Computation_ vol 13 (1984) pp. 751-773. doi:10.1080/03610918408812413
 
 * For Pratt's method of computing binomial confidence intervals, see J.W. Pratt (1968) ["A normal approximation for binomial, F, Beta, and other common, related tail probabilities, II"](http://dx.doi.org/10.1080/01621459.1968.10480939) _J. American Statistical Assoc._, vol 63, pp. 1457- 1483, doi:10.1080/01621459.1968.10480939.  Also R.G. Newcombe ["Confidence Intervals for a binomial proportion"](http://dx.doi.org/10.1002/sim.4780131209) _Stat. in Medicine_ vol 13 (1994) pp 1283-1285, doi:10.1002/sim.4780131209.
+
+* For the Agresti-Coull method of computing binomial confidence intervals, see L.D. Brown, T.T. Cai, & A. DasGupta ["Confidence Intervals for a Binomial Proportion and Asymptotic Expansions"](http://www.jstor.org/stable/2700007) in _Annals of Statistics_, vol 30 (2002), pp. 160-201.
 
 * Shortest Half-range comes from P.J. Rousseeuw and A.M. Leroy, ["A Robust Scale Estimator Based on the Shortest Half"](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9574.1988.tb01224.x/abstract) in _Statistica Neerlandica_ Vol 42 (1988), pp. 103-116. doi:10.1111/j.1467-9574.1988.tb01224.x . See also R.D. Martin and R. H. Zamar, ["Bias-Robust Estimation of Scale"](http://projecteuclid.org/euclid.aos/1176349161)  in _Annals of Statistics_ Vol 21 (1993) pp. 991-1017.  doi:10.1214/aoe/1176349161
 

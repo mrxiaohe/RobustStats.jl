@@ -47,7 +47,10 @@ bci = binomci(2, 10)
 @test bci.p_hat == 2/10
 @test bci.confint[1] ≈ 0.02735907527075918
 @test bci.confint[2] ≈ 0.5562210572204956
-
+bci = acbinomci(2, 10)
+@test bci.p_hat == 2/10
+@test bci.confint[1] ≈ 0.04588727048388419
+@test bci.confint[2] ≈ 0.5206324094338493
 
 @test onestep(x) ≈ 1.3058109021286803
 @test mom(x) ≈ 1.2596462322222222
