@@ -614,39 +614,43 @@ function onestep{S <: Real}(x::AbstractArray{S}, bend::Real=1.28)
     return MED + MAD*A/B
 end
 
-#Compute a bootstrap, .95 confidence interval for the
-#measure of location corresponding to the argument est.
-#By default, a one-step
-#M-estimator of location based on Huber's ψ is used.
-#The default number of bootstrap samples is nboot=500
-#
-#nv=null value when  computing a p-value
+"""`bootstrapci(x; est=onestep, alpha=0.05, nboot=2000)`
 
-function onesampb{S <: Real}(x::AbstractArray{S}; est::Function=onestep,
-    alpha::Real=0.05, nboot::Integer=2000, seed=2, nv::Real=0)
+Compute a (1-α) confidence interval for the location-estimator function `est`
+using a bootstrap calculation. The default estimator is `onestep`. If `nv` is
+given, it is the target value used when computing a p-value.
+"""
+function bootstrapci{S <: Real}(x::AbstractArray{S}; est::Function=onestep,
+    alpha::Real=0.05, nboot::Integer=2000, seed=2, nv::Real=NaN)
     if isa(seed, Int)
         srand(seed)
     elseif seed
         srand(2)
     end
-    n        = length(x)
-    bvec     = zeros(nboot)
-    temp     = zeros(n)
-    randid   = rand(1:n, n*nboot)
+    const n = length(x)
+    bvec = zeros(nboot)
+    temp = zeros(n)
+    randid=rand(1:n, n, nboot)
     for i = 1:nboot
-        [temp[j] = x[randid[(i-1)*n+j]] for j=1:n]
-        bvec[i]  = est(temp)
+        for j = 1:n
+            temp[j] = x[randid[j,i]]
+        end
+        bvec[i]=est(temp)
     end
-    low      = round((alpha./2).*nboot) + 1
-    up       = nboot-low + 1
-    pv       = mean(bvec.>nv)+0.5.*mean(bvec.==nv)
-    pv       = 2.*min(pv, 1-pv)
-    bvec     = sort!(bvec)
+    low::Int = round((alpha/2)*nboot) + 1
+    up = nboot-low + 1
+    sort!(bvec)
+
+    pv = NaN
+    if nv != NaN
+        pv = mean(bvec.>nv)+0.5*mean(bvec.==nv)
+        pv = 2min(pv, 1-pv)
+    end
     estimate = est(x)
-    output   = testOutput()
+    output = testOutput()
     output.estimate = estimate
-    output.ci       = [bvec[low], bvec[up]]
-    output.p        = pv
+    output.ci = [bvec[low], bvec[up]]
+    output.p = pv
     output
 end
 
@@ -678,32 +682,9 @@ end
 Compute a bootstrap, (1-α) confidence interval for the MOM-estimator of location based on Huber's ψ.
 The default number of bootstrap resamplings is nboot=2000."""
 function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05,
-    nboot::Integer=2000, seed=2, method=true)
-    if isa(seed, Int)
-        srand(seed)
-    elseif seed
-        srand(2)
-    end
-    const n = length(x)
-    bvec = zeros(nboot)
-    temp = zeros(n)
-    randid=rand(1:n, n, nboot)
-    for i = 1:nboot
-        for j = 1:n
-            temp[j] = x[randid[j,i]]
-        end
-        bvec[i]=mom!(temp, bend=bend)
-    end
-    low::Int = round((alpha/2)*nboot) + 1
-    up = nboot-low + 1
-    sort!(bvec)
-    output = testOutput()
-    output.ci = [bvec[low], bvec[up]]
-    if method
-        x = 1-alpha
-        output.method = "Bootstrap $(x) confidence interval for the MOM-estimator of location based on Huber's ψ.\n"
-    end
-    output
+    nboot::Integer=2000, seed=2, nv::Real=NaN)
+    estimator(z) = mom!(z, bend=bend)
+    bootstrapci(x, est=estimator, alpha=alpha, nboot=nboot, seed=seed, nv=nv)
 end
 
 #Contaminated normal distribution

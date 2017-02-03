@@ -32,13 +32,14 @@ export
 
     akerd,
     rdplot,
+
     sint,
     sintv2,
     seq,
     cnorm,
     hpsi,
     onestep,
-    onesampb,
+    bootstrapci,
     mom,
     momci,
     trimpb,
