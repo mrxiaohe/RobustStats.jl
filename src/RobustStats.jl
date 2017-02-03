@@ -74,6 +74,5 @@ include("show.jl")
 include("functions.jl")
 include("location_estimators.jl")
 include("dispersion_estimators.jl")
-include("data.jl")
 include("unmaintained.jl")
 end
