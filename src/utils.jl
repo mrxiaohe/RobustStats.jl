@@ -37,19 +37,6 @@ function duplicated(x::AbstractArray)
     false
 end
 
-function seq(Start::Number, End::Number, increment::Number)
-    delta=End-Start
-    if delta.<=0
-        error("`start` must be larger than `end`")
-    else
-        n::Int=floor(delta/increment)+1
-        output=zeros(n)
-        for i=1:n
-            output[i]=(i-1).*increment+Start
-        end
-    end
-    return output
-end
 
 function trimcibt_loop(x, n, nboot, tr, side, randid, test)
     xbar=tmean(x, tr=tr)

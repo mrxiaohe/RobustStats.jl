@@ -223,25 +223,20 @@ if we add `plotit=true`, we get a kernel density plot of the effects derived fro
 
 
 
-####18a. `sint()`
-Computing the confidence interval for the median.
+#### `sint()`
+Compute the confidence interval for the median. Optionally, uses the
+Hettmansperger-Sheather interpolation method to also estimate a p-value.
 
     julia> sint(x)
     Confidence interval for the median
 
      Confidence interval:  0.547483       2.375232
 
-
-
-####23. `sintv2()`
-Confidence interval for the median using the Hettmansperger-Sheather interpolation method.
-
-    julia> sintv2(x)
-    Confidence interval for the median
-    using the Hettmansperger-Sheather interpolation method
+    julia> sint(x, 0.6)
+    Confidence interval for the median with p-val
 
      Confidence interval:  0.547483       2.375232
-     p value:              0.000100
+     p value:              0.071861
 
 
 

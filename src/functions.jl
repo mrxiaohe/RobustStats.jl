@@ -504,33 +504,34 @@ function near{S <: Real}(x::AbstractArray{S}, pt::Real, fr::Real=1.0)
 end
 
 
-#Computing the confidence interval for the median using the
-#Hettmansperger and Sheather method.
+"""`sint(x; alpha=.05)`
+`sint(x, testmedian; alpha=.05)`
+
+Compute the (1-α) confidence interval for the median. In the second form,
+use the Hettmansperger and Sheather interpolation method to estimate a p-value
+for the `testmedian`."""
 function sint{S <: Real}(x::AbstractArray{S}; alpha::Real=0.05, method::Bool=true)
-    n  = length(x)
-    k  = Rmath.qbinom(alpha/2.0, n, 0.5)
-    gk = Rmath.pbinom(length(x)-k, n, .5) - Rmath.pbinom(k-1, n, .5)
-    if gk >= (1 - alpha)
-        gkp1 = Rmath.pbinom(n-k-1, n, .5) - Rmath.pbinom(k, n, .5)
-        kp   = k + 1
-    else
-        k    = k - 1
-        gk   = Rmath.pbinom(n-k, n, .5)   - Rmath.pbinom(k-1, n, .5)
-        gkp1 = Rmath.pbinom(n-k-1, n, .5) - Rmath.pbinom(k, n, .5)
-        kp   = k+1
+    const n = length(x)
+    k = Int(Rmath.qbinom(alpha/2.0, n, 0.5))
+    gk = Rmath.pbinom(n-k, n, .5) - Rmath.pbinom(k-1, n, .5)
+    if gk < (1 - alpha)
+        k = k - 1
+        gk = Rmath.pbinom(n-k, n, .5) - Rmath.pbinom(k-1, n, .5)
     end
+    gkp1 = Rmath.pbinom(n-k-1, n, .5) - Rmath.pbinom(k, n, .5)
+    kp = k + 1
+
     xsort=sort(x)
-    nmk  = n-k
+    nmk = n-k
     nmkp = nmk+1
     ival = (gk-1+alpha)/(gk-gkp1)
-    lam  = ((n-k)*ival)/(k+(n-2*k)*ival)
-    low  = lam*xsort[kp]+(1-lam)*xsort[k]
-    hi   = lam*xsort[nmk]+(1-lam)*xsort[nmkp]
+    lam = ((n-k)*ival)/(k+(n-2k)*ival)
+    low = lam*xsort[kp]+(1-lam)*xsort[k]
+    hi = lam*xsort[nmk]+(1-lam)*xsort[nmkp]
     if method
+        METHOD="Confidence interval for the median\n"
         if duplicated(x)
-            METHOD="Confidence interval for the median\nDuplicate values detected; hdpb() might have more power\n"
-        else
-            METHOD="Confidence interval for the median\n"
+            METHOD *= "Duplicate values detected; hdpb() might have more power\n"
         end
     else
         METHOD=nothing
@@ -542,45 +543,41 @@ function sint{S <: Real}(x::AbstractArray{S}; alpha::Real=0.05, method::Bool=tru
 end
 
 
-#Compute 1-alpha confidence interval for the median using the Hettmansperger-Sheather interpolation method
-function sintv2{S <: Real}(x::AbstractArray{S}; alpha::Real=0.05, nullval::Real=0.0, method::Bool=true)
-    ci      = sint(x, alpha=alpha, method=false).ci
-    alph    = [1:99]./100
-    irem    = zeros(Int, 1)
-    for i = 1:99
-        irem  = i
-        chkit = sint(x, alpha=alph[i], method=false).ci
-        if chkit[1].>nullval || chkit[2].<nullval
-            break
+function sint{S <: Real}(x::AbstractArray{S}, testmedian;
+    alpha::Real=0.05, method::Bool=true)
+    ci = sint(x, alpha=alpha, method=false).ci
+    med = median(x)
+    cichoice = testmedian<med ? 1 : 2
+
+    # Find the pvalue that excludes testmedian by binary search.
+    minloga = -8.0
+    maxloga = -0.001
+    ciA = sint(x, alpha=exp(minloga)).ci[cichoice]-testmedian
+    ciB = sint(x, alpha=exp(maxloga)).ci[cichoice]-testmedian
+    if (ciA*ciB) > 0
+        if ciB*(med-testmedian)<0
+            pval = 1.0
+        else
+            pval = 0.0
         end
-    end
-    pval=irem/100
-    if pval.<=0.1
-        iup  = (irem+1)/100
-        alph = seq(0.001, iup, 0.001)
-        for i = 1:length(alph)
-            pval  = alph[i]
-            chkit = sint(x, alpha=alph[i], method=false).ci
-            if chkit[1] > nullval || chkit[2] < nullval
-                break
+    else
+        while (maxloga-minloga > .0001)
+            newloga = (maxloga+minloga)/2
+            newci = sint(x, alpha=exp(newloga)).ci[cichoice]-testmedian
+            if newci*ciB >= 0
+                ciB = newci
+                maxloga = newloga
+            else
+                ciA = newci
+                minloga = newloga
             end
         end
-    end
-    if pval <= 0.001
-        alph = seq(.0001,.001,.0001)
-        for i = 1:length(alph)
-            pval  = alph[i]
-            chkit = sint(x, alpha=alph[i], method=false).ci
-            if chkit[1] > nullval || chkit[2] < nullval
-                break
-            end
-        end
+        pval = exp((maxloga+minloga)/2.0)
     end
     if method
+        METHOD="Confidence interval for the median with p-val.\n"
         if duplicated(x)
-            METHOD="Confidence interval for the median\nusing the Hettmansperger-Sheather interpolation method\nDuplicate values detected; hdpb() might have more power\n"
-        else
-            METHOD="Confidence interval for the median\nusing the Hettmansperger-Sheather interpolation method\n"
+            METHOD *= "Duplicate values detected; hdpb() might have more power\n"
         end
     else
         METHOD=nothing
