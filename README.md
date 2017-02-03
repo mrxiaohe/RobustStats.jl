@@ -294,16 +294,15 @@ based on Huber's ψ.  Default α=0.05.
 
 
 
-####28. `cnorm()`
-Create contaminated normal distributions.
-
-    julia> srand(1)
-    julia> c = cnorm(2000)
-    julia> akerd(c)
-
-![plot](http://img818.imageshack.us/img818/7345/8uq8.png)
+#### `contam_randn()`
+Create contaminated normal distributions. Most values will by from a N(0,1) zero-mean
+unit-variance normal distribution. A fraction `epsilon` of all values will have `k`
+times the standard devation of the others. Default: `epsilon=0.1` and `k=10`.
 
 
+    julia> srand(1);
+    julia> std(contam_randn(2000))
+    3.516722458797104
 
 
 ####29. `trimpb()`

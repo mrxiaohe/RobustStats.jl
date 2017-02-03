@@ -701,22 +701,21 @@ function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05
     bootstrapci(x, est=estimator, alpha=alpha, nboot=nboot, seed=seed, nv=nv)
 end
 
-#Contaminated normal distribution
-function cnorm(n::Integer; epsilon::Real=0.1, k::Real=10)
-    if epsilon > 1
-        error("epsilon must be less than or equal to 1")
-    elseif epsilon < 0
-        error("epsilon must be greater than or equal to 0")
-    end
-    if k <= 0
-        error("k must be greater than 0")
-    end
-    output  = zeros(n)
-    epsilondiff = 1.0 - epsilon
-    [output[i] = rand() > epsilondiff ? k*randn():randn() for i=1:n]
+"""`contam_randn([T=Float64], n; epsilon=0.1, k=10.0)`
+
+Contaminated normal distribution N(0,1). (That is, with μ=0, σ=1.) A fraction `epsilon` of
+values will be N(0,`k`)."""
+function contam_randn(T::Type, n::Integer; epsilon::Real=0.1, k::Real=10)
+    k <= 0 && error("k > 0 is required")
+    epsilon > 1 || epsilon < 0 && error("0 ≤ epsilon ≤ 1 is required")
+    output = randn(T, n)
+    contaminated = rand(n) .< epsilon
+    output[contaminated] *= k
     return output
 end
 
+contam_randn(n::Integer; epsilon::Real=0.1, k::Real=10) =
+    contam_randn(Float64, n, epsilon=epsilon, k=k)
 
 #   Compute a 1-alpha confidence interval for
 #   a trimmed mean.
