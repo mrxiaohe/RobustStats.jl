@@ -121,20 +121,12 @@ end
 
 
 # Trimean: exact quartiles
-a = collect(0:12)
-@test trimean(a) ≈ 6.0
-@test trimean(a.^2) ≈ (3^2+9^2)/4.+6^2/2.
-
+@test trimean(0:12) ≈ 6.0
 # Trimean: exact median, inexact 1st and 3rd quartiles
-a = collect(0:10)
-@test trimean(a) ≈ 5.0
-@test trimean(a.^2) ≈ (6.5+56.5)/4. + 25.0/2
-
+@test trimean(0:10) ≈ 5.0
 # Trimean: inexact quartiles
-a = collect(0:9)
-@test trimean(a) ≈ 4.5
-@test trimean(a.^2) ≈ (4*.75+9*.25 + 36*.25+49*.75)/4. + (16*.5+25*.5)/2
-
+@test trimean(0:9) ≈ 4.5
+@test trimean(x) ≈ 1.35575501875
 
 # Shortest half-range
 a = [10,3,5,6,6.5,7,8,0,13]  # Odd # of values. 9 values, with "half" containing 5
