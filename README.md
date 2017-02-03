@@ -51,16 +51,16 @@ considered extreme can be between 0 and 0.5, with 0.2 as the default.
      0.51543
 
 
-#### `winmean`: winsorized mean
+#### `winmean`, `winvar`, `wincov`: winsorized mean, variance, and covariance
 
     julia> winmean(x)          #20% winsorization; can be changed via the named argument `tr`.
     1.4205834800000001
-
-
-#### `winvar`: winsorized variance
-
-    julia> winvar(x)           #20% winsorization; can be changed via the named argument `tr`.
+    julia> winvar(x)
     0.998659015947531
+    julia> wincov(x, x)
+    0.998659015947531
+    julia> wincov(x, x.^2)
+    3.2819238397424004
 
 
 #### `trimse`: estimated standard error of the trimmed mean

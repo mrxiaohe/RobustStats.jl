@@ -75,6 +75,20 @@ See `winval` for what Winsorizing (clipping) signifies.
 winstd{S <: Real}(x::AbstractArray{S}; tr=0.2) = std(winval(x, tr=tr))
 
 
+"""`wincov(x, y; tr=0.2)`
+
+Compute the Winsorized covariance between `x` and `y`.
+
+See `winval` for what Winsorizing (clipping) signifies.
+"""
+function wincov{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; tr::Real=0.2)
+    xvec = winval(x, tr=tr)
+    yvec = winval(y, tr=tr)
+    wcov = cov(xvec, yvec)
+end
+
+
+
 """`trimse(x; tr=0.2)`
 
 Estimated standard error of the mean for Winsorized real-valued array `x`.
@@ -473,8 +487,8 @@ end
 #phi the colatitude
 function rdplot{S <: Real}(x::AbstractArray{S}; fr::Real=NaN, pts=NaN,
                            plotit=true, title="", xlab="", ylab="", color="black")
-    if isnan(fr); fr = 0.8; end
-    if isnan(pts); pts = x[:];end
+    if fr == NaN; fr = 0.8; end
+    if pts == NaN; pts = x[:];end
     rmd = [sum(near(x, pts[i], fr))*1.0 for i=1:length(pts)]
     rmd /= length(x)
     MAD = mad(x)
@@ -1092,32 +1106,6 @@ function indirectTest{S <: Real, T <: Real, W <: Real}(dv::AbstractArray{S}, iv:
     output.bootse  = bootse
     output
 end
-
-
-#   Compute the Winsorized correlation between x and y.
-#
-#   tr is the amount of Winsorization
-#   This function also returns the Winsorized covariance
-function wincor{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; tr::Real=0.2)
-    n = length(x)
-    if n != length(y)
-        error("`x` and `y` must agree in length")
-    end
-    g::Integer = floor(tr*n)
-    xvec = winval(x, tr=tr)
-    yvec = winval(y, tr=tr)
-    wcor = cor(xvec, yvec)
-    wcov = cov(xvec, yvec)
-
-    if sum(x.==y) != n
-        test = wcor*sqrt((n - 2)/(1 - wcor*wcor))
-        sig  = 2*(1 - Rmath.pt(abs(test), n-2*g-2))
-        return wcor, wcov, sig, n
-    else
-        return wcor, wcov, n
-    end
-end
-
 
 
 #

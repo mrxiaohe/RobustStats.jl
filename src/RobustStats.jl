@@ -18,6 +18,7 @@ export
     winval,
     winmean,
     winvar,
+    wincov,
     trimse,
     trimci,
     idealf,

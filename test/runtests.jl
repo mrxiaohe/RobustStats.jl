@@ -18,6 +18,8 @@ test_approx(a,b, atol) = @test isapprox(a,b, atol=atol)
 winval(x)      # just verify that it doesn't crash
 @test winmean(x) ≈ 1.4205834800000001
 @test winvar(x) ≈ 0.998659015947531
+@test wincov(x, x) ≈ 0.998659015947531
+@test wincov(x, x.^2) ≈ 3.2819238397424004
 @test RobustStats.winstd(x) ≈ 0.9993292830431474
 @test trimse(x) ≈ 0.3724280347984342
 out = trimci(x)
