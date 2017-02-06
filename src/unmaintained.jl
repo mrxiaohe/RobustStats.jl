@@ -242,3 +242,135 @@ function near{S <: Real}(x::AbstractArray{S}, pt::Real, fr::Real=1.0)
     m = _estimate_dispersion(x)
     return abs(x-pt) .<= fr*m
 end
+
+
+# Test the hypothesis of independence between x and y by
+# testing the hypothesis that the regression surface is a horizontal plane.
+# Stute et al. (1998, JASA, 93, 141-149).
+#
+#  flag=1 gives Kolmogorov-Smirnov test statistic
+#  flag=2 gives the Cramer-von Mises test statistic
+#  flag=3 causes both test statistics to be reported.
+#
+#  tr=0 results in the Cramer-von Mises test statistic when flag=2
+#      With tr>0, a trimmed version of the test statistic is used.
+#
+function indt(x::AbstractArray, y::AbstractArray; flag::Int=1, nboot::Int=599,
+              tr::Float64=0.0, seed=2, method=true)
+    if ndims(x)==1
+        x=reshape(x,length(x),1)
+    end
+    if length(findin(flag, 1:3))==0
+        error("flag must be set to 1, 2, or 3")
+    end
+    n=size(x,1)
+    np=size(x,2)
+    y=reshape(y, length(y), 1)
+    if length(y)!=n
+        error("Incondistent dimensions of x and y: number of x must match number of y")
+    end
+    mflag=indt_mflag(x)
+    yhat=mean(y)
+    res=zeros(n)
+    [res[i]=y[i]-yhat for i=1:n]
+    if isa(seed, Bool)
+        if seed
+            srand(2)
+        end
+    else
+        srand(seed)
+    end
+    data=(rand(nboot, n)-0.5).*sqrt(12)
+    rvalb=zeros(n, nboot)
+    const sqrtn=sqrt(n)
+    [rvalb[:,i]=regts1(data[i,:], yhat, res, mflag, x, 0) for i=1:nboot]
+    [[rvalb[i,j]=abs(rvalb[i,j])/sqrtn for i=1:n] for j=1:nboot]
+
+    dstatb=zeros(nboot)
+    [dstatb[i]=max(rvalb[:,i]) for i=1:nboot]
+
+    [[rvalb[i,j]=rvalb[i,j].*rvalb[i,j] for i=1:n] for j=1:nboot]
+    wstatb=mean(rvalb, 1)
+    rval=regts1(fill(1.0, n), yhat, res, mflag, x, tr)./sqrtn
+
+    dstat=pval_d=wstat=pval_w=nothing
+    if flag==1 || flag==3
+        [rval[i]=abs(rval[i]) for i=1:n]
+        dstat=max(rval)
+        pval_d=0.0
+        pval_d=sum(dstat.>=dstatb)./nboot
+        pval_d=1.0-pval_d
+    end
+    if flag==2 || flag==3
+        [rval[i]=rval[i].*rval[i] for i=1:n]
+        wstat=tmean(rval, tr=tr)
+        pval_w=0.0
+        pval_w=sum(wstat.>=wstatb)./nboot
+        pval_w=1.0-pval_w
+    end
+    if method
+        METHOD::String="Test whether x and y are independent by testing the hypothesis\nthat the regression surface is a horizontal plane.\n"
+    else
+        METHOD=nothing
+    end
+    indtOutput(
+        METHOD,
+        dstat,
+        pval_d,
+        wstat,
+        pval_w,
+        flag
+        )
+end
+
+
+function indirectTest{S <: Real, T <: Real, W <: Real}(dv::AbstractArray{S}, iv::AbstractArray{T}, m::Vector{W};
+            nboot::Integer=5000, alpha::Real=0.05, scale::Bool=false, seed=2, plotit::Bool=false)
+    if isa(seed, Bool)
+        if seed
+            srand(2)
+        end
+    else
+        srand(seed)
+    end
+    n = length(iv)
+    randid  = rand(1:n, n*nboot)
+    bvec    = sort!(bootindirect(iv, dv, m, nboot))
+    bbar    = mean(bvec)
+    bootci  = [bvec[round(alpha*nboot/2)], bvec[nboot - round(alpha*nboot/2) + 1]]
+    bootest = mean(bvec)
+    bootse  = std(bvec)
+    p       = mean(bvec .<0) + 0.5*mean(bvec .==0)
+    p       = 2*min(p, 1-p)
+    data    = DataFrame(iv, m, dv)
+    regfit1 = coeftable(lm( :(x3 ~ x1     ), data))
+    regfit2 = coeftable(lm( :(x2 ~ x1     ), data))
+    regfit3 = coeftable(lm( :(x3 ~ x1 + x2), data))
+    regfit  = rbind(regfit1[2,:], regfit2[2,:], regfit3[2:3,:])
+
+    estimate  = regfit2[2,1]*regfit3[3,1]
+    sobel_se  = sqrt(regfit[4, 1]*regfit[4, 1]*regfit[2, 2]*regfit[2, 2]+
+                     regfit[2, 1]*regfit[2, 1]*regfit[4, 2]*regfit[4, 2]+
+                     regfit[2, 2]*regfit[2, 2]*regfit[4, 2]*regfit[4, 2])
+    sobel     = DataFrame(estimate,
+                          sobel_se,
+                          estimate/sobel_se,
+                          estimate - Rmath.qnorm(.975)*sobel_se,
+                          estimate + Rmath.qnorm(.975)*sobel_se,
+                          2*(1-Rmath.pnorm(abs(estimate/sobel_se))))
+    #return nboot, n, regfit, sobel, bootest, bootci, p
+    if plotit
+        dens = kde(bvec)
+        plot(dens.x, dens.density)
+    end
+    output = indirectTestOutput()
+    output.nboot   = nboot
+    output.n       = n
+    output.sobel   = sobel
+    output.regfit  = regfit
+    output.bootest = bootest
+    output.bootci  = bootci
+    output.p       = p
+    output.bootse  = bootse
+    output
+end

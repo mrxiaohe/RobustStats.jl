@@ -48,45 +48,45 @@ This function is able to handle multiple dependent groups. Suppose that the orig
                                  3        4  -0.649426
      Critical value:       10.885867
 
-     #### `akerd`:
-     Compute adaptive kernel density estimate for univariate data (See Silverman, 1986)
+ #### `akerd`:
+ Compute adaptive kernel density estimate for univariate data (See Silverman, 1986)
 
-         julia> akerd(x, title="Lognormal Distribution", xlab="x", ylab="Density")
-
-
-         julia> srand(10)
-         julia> x3=rnorm(100, 1, 2);
-         julia> akerd(x3, title="Normal Distribution; mu=1, sd=2", xlab="x", ylab="Density", color="red", plottype="dash")
+     julia> akerd(x, title="Lognormal Distribution", xlab="x", ylab="Density")
 
 
+     julia> srand(10)
+     julia> x3=rnorm(100, 1, 2);
+     julia> akerd(x3, title="Normal Distribution; mu=1, sd=2", xlab="x", ylab="Density", color="red", plottype="dash")
 
-     #### `indirectTest`:
-     This function is adapted from Andrew Hayes' SPSS macro, which evaluates indirect/mediation effects via percentile bootstrap and the Sobel Test.
 
-         julia> srand(1)
-         julia> m = randn(20);        #Mediator
-         julia> srand(2)
-         julia> y = randn(20) + 2.0;  #Outcome variable
 
-         julia> indirectTest(y, x, m)   #5000 bootstrap samples by default
-         TESTS OF INDIRECT EFFECT
+ #### `indirectTest`:
+ This function is adapted from Andrew Hayes' SPSS macro, which evaluates indirect/mediation effects via percentile bootstrap and the Sobel Test.
 
-         Sample size: 20
-         Number of bootstrap samples: 5000
+     julia> srand(1)
+     julia> m = randn(20);        #Mediator
+     julia> srand(2)
+     julia> y = randn(20) + 2.0;  #Outcome variable
 
-         DIRECT AND TOTAL EFFECTS
-                   Estimate  Std.Error     t value   Pr(>|t|)
-         b(YX):    0.125248   0.087729    1.427664   0.170508
-         b(MX):    0.082156   0.106198    0.773611   0.449202
-         b(YM.X):  0.140675   0.089359    1.574264   0.133852
-         b(YX.M): -0.187775   0.195111   -0.962402   0.349338
+     julia> indirectTest(y, x, m)   #5000 bootstrap samples by default
+     TESTS OF INDIRECT EFFECT
 
-         INDIRECT EFFECT AND SIGNIFICANCE USING NORMAL DISTRIBUTION
-                   Estimate  Std.Error     z score      CI lo      CI hi  Pr(>|z|)
-         Sobel:   -0.015427   0.019161   -0.805126  -0.052981   0.022128  0.420747
+     Sample size: 20
+     Number of bootstrap samples: 5000
 
-         BOOTSTRAP RESULTS OF INDIRECT EFFECT
-                   Estimate  Std.Error       CI lo      CI hi    P value
-         Effect:  -0.048598   0.084280   -0.298647   0.019394   0.420800
+     DIRECT AND TOTAL EFFECTS
+               Estimate  Std.Error     t value   Pr(>|t|)
+     b(YX):    0.125248   0.087729    1.427664   0.170508
+     b(MX):    0.082156   0.106198    0.773611   0.449202
+     b(YM.X):  0.140675   0.089359    1.574264   0.133852
+     b(YX.M): -0.187775   0.195111   -0.962402   0.349338
 
-     if we add `plotit=true`, we get a kernel density plot of the effects derived from bootstrap samples:
+     INDIRECT EFFECT AND SIGNIFICANCE USING NORMAL DISTRIBUTION
+               Estimate  Std.Error     z score      CI lo      CI hi  Pr(>|z|)
+     Sobel:   -0.015427   0.019161   -0.805126  -0.052981   0.022128  0.420747
+
+     BOOTSTRAP RESULTS OF INDIRECT EFFECT
+               Estimate  Std.Error       CI lo      CI hi    P value
+     Effect:  -0.048598   0.084280   -0.298647   0.019394   0.420800
+
+ if we add `plotit=true`, we get a kernel density plot of the effects derived from bootstrap samples:

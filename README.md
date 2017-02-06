@@ -69,11 +69,11 @@ considered extreme can be between 0 and 0.5, with 0.2 as the default.
     0.3724280347984342
 
 
-#### `trimci`: (1-alpha) confidence interval for the trimmed mean
+#### `trimci`: (1-α) confidence interval for the trimmed mean
 Can be used for paired groups if `x` consists of the difference scores of two paired groups.
 
     julia> trimci(x)                 #20% winsorization; can be changed via the named argument `tr`.
-    1-alpha confidence interval for the trimmed mean
+    (1-α) confidence interval for the trimmed mean
 
     Degrees of freedom:   11
     Estimate:             1.292180
@@ -211,8 +211,8 @@ Compute one-step M-estimator of location using Huber's ψ. The default bending c
 
 
 
-#### `bootstrapci()`
-Compute a bootstrap, (1-α) confidence interval for the measure of location corresponding to the argument `est`. By default, a one-step M-estimator of location based on Huber's ψ is used. The default number of bootstrap samples is `nboot=2000`. `nv` is the target value used when computing a p-value. Default α=0.05.
+#### `bootstrapci`
+Compute a bootstrap, (1-α) confidence interval for the measure of location corresponding to the argument `est`. By default, a one-step M-estimator of location based on Huber's ψ is used. The default number of bootstrap samples is `nboot=2000`. `nullvalue` is the target value used when computing a p-value. Default α=0.05.
 
     julia> bootstrapci(x)
     Estimate:             1.305811
@@ -236,7 +236,7 @@ median.
 Compute the bootstrap (1-α) confidence interval for the MOM-estimator of location
 based on Huber's ψ.  Default α=0.05.
 
-    julia> momci(x, seed=2, nboot=2000, nv=0.6)
+    julia> momci(x, seed=2, nboot=2000, nullvalue=0.6)
     Estimate:             1.259646
     Confidence interval:  0.504223       2.120979
     p value:              0.131000
@@ -244,7 +244,7 @@ based on Huber's ψ.  Default α=0.05.
 
 
 
-#### `contam_randn()`
+#### `contam_randn`
 Create contaminated normal distributions. Most values will by from a N(0,1) zero-mean
 unit-variance normal distribution. A fraction `epsilon` of all values will have `k`
 times the standard devation of the others. Default: `epsilon=0.1` and `k=10`.
@@ -255,33 +255,19 @@ times the standard devation of the others. Default: `epsilon=0.1` and `k=10`.
     3.516722458797104
 
 
-####29. `trimpb()`
-Compute a 1-alpha confidence interval for a trimmed mean. The default number of bootstrap samples is nboot=2000. win is the amount of Winsorizing before bootstrapping when WIN=true.
+#### `trimpb`
+Compute a (1-α) confidence interval for a trimmed mean by bootstrap methods.
 
-plotit=true gives a plot of the bootstrap values
-* pop=1 results in the expected frequency curve.
-* pop=2 kernel density estimate    NOT IMPLEMENTED
-* pop=3 boxplot                    NOT IMPLEMENTED
-* pop=4 stem-and-leaf              NOT IMPLEMENTED
-* pop=5 histogram
-* pop=6 adaptive kernel density estimate.
-
-fr controls the amount of smoothing when plotting the bootstrap values via the function rdplot. fr=NaN means the function will use fr=.8 (When plotting bivariate data, rdplot uses fr=.6 by default.)
-
-
-    julia> trimpb(x, plotit=true, pop=6)
-    Compute a 1-alpha confidence interval for a trimmed mean using the bootstrap percentile method.
-
-     Confidence interval:  0.708236       2.253489
-     p value:             < 10e-16
-
-![plot](http://img585.imageshack.us/img585/9997/iua.png)
+    julia> trimpb(x, nullvalue=0.75)
+     Estimate:             1.292180
+     Confidence interval:  0.690539       2.196381
+     p value:              0.086000
 
 
 
 
 ####30. `trimcibt()`
-Compute a 1-alpha confidence interval for the trimmed mean using a bootstrap percentile t method. The default amount of trimming is tr=.2. side=true,  indicates the symmetric two-sided method. side=false yields an equal-tailed confidence interval. NOTE: p.value is reported when side=true only.
+Compute a (1-α) confidence interval for the trimmed mean using a bootstrap percentile t method. The default amount of trimming is tr=.2. side=true,  indicates the symmetric two-sided method. side=false yields an equal-tailed confidence interval. NOTE: p.value is reported when side=true only.
 
     julia> trimcibt(x, nboot=5000, plotit=true)
     Bootstrap .95 confidence interval for the trimmed mean

@@ -113,7 +113,7 @@ function trimci{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05, 
                    estimate+Rmath.qt(1-alpha/2, df)*se]
     statistic   = (estimate-nullvalue)/se
     pval        = 2*(1-Rmath.pt(abs(statistic),df))
-    METHOD      = method ? "1-alpha confidence interval for the trimmed mean\n": nothing
+    METHOD      = method ? "(1-α) confidence interval for the trimmed mean\n": nothing
     output           = testOutput()
     output.method    = METHOD
     output.df        = df
@@ -553,11 +553,11 @@ end
 """`bootstrapci(x; est=onestep, alpha=0.05, nboot=2000)`
 
 Compute a (1-α) confidence interval for the location-estimator function `est`
-using a bootstrap calculation. The default estimator is `onestep`. If `nv` is
+using a bootstrap calculation. The default estimator is `onestep`. If `nullvalue` is
 given, it is the target value used when computing a p-value.
 """
 function bootstrapci{S <: Real}(x::AbstractArray{S}; est::Function=onestep,
-    alpha::Real=0.05, nboot::Integer=2000, seed=2, nv::Real=NaN)
+    alpha::Real=0.05, nboot::Integer=2000, seed=2, nullvalue::Real=NaN)
     if isa(seed, Int)
         srand(seed)
     elseif seed
@@ -578,8 +578,8 @@ function bootstrapci{S <: Real}(x::AbstractArray{S}; est::Function=onestep,
     sort!(bvec)
 
     pv = NaN
-    if nv != NaN
-        pv = mean(bvec.>nv)+0.5*mean(bvec.==nv)
+    if nullvalue != NaN
+        pv = mean(bvec.>nullvalue)+0.5*mean(bvec.==nullvalue)
         pv = 2min(pv, 1-pv)
     end
     estimate = est(x)
@@ -618,9 +618,9 @@ end
 Compute a bootstrap, (1-α) confidence interval for the MOM-estimator of location based on Huber's ψ.
 The default number of bootstrap resamplings is nboot=2000."""
 function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05,
-    nboot::Integer=2000, seed=2, nv::Real=NaN)
+    nboot::Integer=2000, seed=2, nullvalue::Real=NaN)
     estimator(z) = mom!(z, bend=bend)
-    bootstrapci(copy(x), est=estimator, alpha=alpha, nboot=nboot, seed=seed, nv=nv)
+    bootstrapci(copy(x), est=estimator, alpha=alpha, nboot=nboot, seed=seed, nullvalue=nullvalue)
 end
 
 """`contam_randn([T=Float64], n; epsilon=0.1, k=10.0)`
@@ -639,111 +639,36 @@ end
 contam_randn(n::Integer; epsilon::Real=0.1, k::Real=10) =
     contam_randn(Float64, n, epsilon=epsilon, k=k)
 
-#   Compute a 1-alpha confidence interval for
-#   a trimmed mean.
-#
-#   The default number of bootstrap samples is nboot=2000
-#
-#   win is the amount of Winsorizing before bootstrapping
-#   when WIN=T.
-#
-#   Missing values are automatically removed.
-#
-#  nv is null value. That test hypothesis trimmed mean equals nv
-#
-#  plotit=TRUE gives a plot of the bootstrap values
-#  pop=1 results in the expected frequency curve.
-#  pop=2 kernel density estimate    NOT IMPLEMENTED
-#  pop=3 boxplot                    NOT IMPLEMENTED
-#  pop=4 stem-and-leaf              NOT IMPLEMENTED
-#  pop=5 histogram
-#  pop=6 adaptive kernel density estimate.
-#
-#  fr controls the amount of smoothing when plotting the bootstrap values
-#  via the function rdplot. fr=NA means the function will use fr=.8
-#  (When plotting bivariate data, rdplot uses fr=.6 by default.)
 
+
+"""`trimpb(x; tr=0.2, alpha=0.05, nboot=2000, win=false, nullvalue=0.0)`
+
+Compute a (1-α) confidence interval for a trimmed mean with a trimming fraction of `tr`.
+
+Use `nboot` bootstrap samples and `alpha` for α.
+
+If `win` is a real number, it is the amount of Winsorizing before bootstrapping.
+If `win` is true, then use 10% Winsorizing. If `win` is false, no Winsorizing is done.
+
+The p-value is for the hypothesis that trimmed mean equals `nullvalue`.
+"""
 function trimpb{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05, nboot::Integer=2000,
-                win=false, plotit::Bool=false, pop::Int=1, nullval::Real=0.0,
-                xlab="X", ylab="Density", fr=nothing, seed=2,
-                method::Bool=true)
-    if isa(win, Bool)
-        if win
-            x=winval(x, tr=0.1)
-        end
-    elseif win>tr
-        error("The amount of Winsorizing must be <= to the amount of trimming")
-    else
-        x=winval(x, tr=win)
+                win=false, nullvalue::Real=0.0, seed=2)
+    if isa(win, Bool) && win
+        win = 0.1
     end
-    crit=alpha/2.0
-    icl=round(crit*nboot)+1
-    icu=nboot-icl
-    if isa(seed, Bool)
-        if seed
-            srand(2)
-        end
-    else
-        srand(seed)
+    if win > tr
+        error("trimpb() requires that the amount of Winsorizing ≤ the amount of trimming.")
     end
-    n=length(x)
-    bvec=zeros(nboot)
-    randid=rand(1:n, n*nboot)
-    for i=1:nboot
-        temp=zeros(n)
-        for j=1:n
-            temp[j]=x[randid[(i-1)*n+j]]
-        end
-        bvec[i]=tmean!(temp, tr=tr)
-    end
-    bvec=sort!(bvec)
-    pval1=pval2=0.0
-    for i=1:nboot
-        if bvec[i]<nullval
-            pval1+=1./nboot
-        end
-        if bvec[i]==nullval
-            pval2+=0.5/nboot
-        end
-    end
-    pval=2*min(pval1+pval2, 1-pval1-pval2)
-    ci=[bvec[icl], bvec[icu]]
-    if method
-        METHOD::String="Compute a 1-alpha confidence interval for a trimmed mean using the bootstrap percentile method.\n"
-    else
-        METHOD=nothing
-    end
-    if plotit
-        if pop==1
-            if fr==nothing
-                rdplot(bvec, fr=0.6, xlab=xlab, ylab=ylab)
-            else
-                rdplot(bvec, fr=fr, xlab=xlab, ylab=ylab)
-            end
-        elseif pop==5
-            p=FramedPlot()
-            add(p, Histogram(hist(bvec)[2], 2))
-            if xlab!=nothing
-                setattr(p, "xlabel", xlab)
-            end
-            if ylab!=nothing
-                setattr(p, "ylabel", ylab)
-            end
-            Winston.tk(p)
-        elseif pop==6
-            akerd(bvec, xlab=xlab, ylab=ylab)
-        end
-    end
-    output = testOutput()
-    output.method = METHOD
-    output.ci     = ci
-    output.p      = pval
-    output
+    wx = winval(x, tr=win)
+
+    estimator(x) = tmean!(x, tr=tr)
+    bootstrapci(wx, est=estimator, alpha=alpha, nboot=nboot, seed=seed, nullvalue=nullvalue)
 end
 
 
 
-#  Compute a 1-alpha confidence interval for the trimmed mean
+#  Compute a (1-α) confidence interval for the trimmed mean
 #  using a bootstrap percentile t method.
 #
 #  The default amount of trimming is tr=.2
@@ -848,6 +773,7 @@ function bootse{S <: Real}(x::AbstractArray{S}; nboot::Integer=1000, est::Functi
     return std(bvec)
 end
 
+
 """`procb(x, y; seed=2)`
 
 Compute a .95 confidence interval for Pearson's correlation coefficient.
@@ -888,138 +814,6 @@ function pcorb{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; s
     output
 end
 
-
-
-# Test the hypothesis of independence between x and y by
-# testing the hypothesis that the regression surface is a horizontal plane.
-# Stute et al. (1998, JASA, 93, 141-149).
-#
-#  flag=1 gives Kolmogorov-Smirnov test statistic
-#  flag=2 gives the Cramer-von Mises test statistic
-#  flag=3 causes both test statistics to be reported.
-#
-#  tr=0 results in the Cramer-von Mises test statistic when flag=2
-#      With tr>0, a trimmed version of the test statistic is used.
-#
-function indt(x::AbstractArray, y::AbstractArray; flag::Int=1, nboot::Int=599,
-              tr::Float64=0.0, seed=2, method=true)
-    if ndims(x)==1
-        x=reshape(x,length(x),1)
-    end
-    if length(findin(flag, 1:3))==0
-        error("flag must be set to 1, 2, or 3")
-    end
-    n=size(x,1)
-    np=size(x,2)
-    y=reshape(y, length(y), 1)
-    if length(y)!=n
-        error("Incondistent dimensions of x and y: number of x must match number of y")
-    end
-    mflag=indt_mflag(x)
-    yhat=mean(y)
-    res=zeros(n)
-    [res[i]=y[i]-yhat for i=1:n]
-    if isa(seed, Bool)
-        if seed
-            srand(2)
-        end
-    else
-        srand(seed)
-    end
-    data=(rand(nboot, n)-0.5).*sqrt(12)
-    rvalb=zeros(n, nboot)
-    const sqrtn=sqrt(n)
-    [rvalb[:,i]=regts1(data[i,:], yhat, res, mflag, x, 0) for i=1:nboot]
-    [[rvalb[i,j]=abs(rvalb[i,j])/sqrtn for i=1:n] for j=1:nboot]
-
-    dstatb=zeros(nboot)
-    [dstatb[i]=max(rvalb[:,i]) for i=1:nboot]
-
-    [[rvalb[i,j]=rvalb[i,j].*rvalb[i,j] for i=1:n] for j=1:nboot]
-    wstatb=mean(rvalb, 1)
-    rval=regts1(fill(1.0, n), yhat, res, mflag, x, tr)./sqrtn
-
-    dstat=pval_d=wstat=pval_w=nothing
-    if flag==1 || flag==3
-        [rval[i]=abs(rval[i]) for i=1:n]
-        dstat=max(rval)
-        pval_d=0.0
-        pval_d=sum(dstat.>=dstatb)./nboot
-        pval_d=1.0-pval_d
-    end
-    if flag==2 || flag==3
-        [rval[i]=rval[i].*rval[i] for i=1:n]
-        wstat=tmean(rval, tr=tr)
-        pval_w=0.0
-        pval_w=sum(wstat.>=wstatb)./nboot
-        pval_w=1.0-pval_w
-    end
-    if method
-        METHOD::String="Test whether x and y are independent by testing the hypothesis\nthat the regression surface is a horizontal plane.\n"
-    else
-        METHOD=nothing
-    end
-    indtOutput(
-        METHOD,
-        dstat,
-        pval_d,
-        wstat,
-        pval_w,
-        flag
-        )
-end
-
-
-function indirectTest{S <: Real, T <: Real, W <: Real}(dv::AbstractArray{S}, iv::AbstractArray{T}, m::Vector{W};
-            nboot::Integer=5000, alpha::Real=0.05, scale::Bool=false, seed=2, plotit::Bool=false)
-    if isa(seed, Bool)
-        if seed
-            srand(2)
-        end
-    else
-        srand(seed)
-    end
-    n = length(iv)
-    randid  = rand(1:n, n*nboot)
-    bvec    = sort!(bootindirect(iv, dv, m, nboot))
-    bbar    = mean(bvec)
-    bootci  = [bvec[round(alpha*nboot/2)], bvec[nboot - round(alpha*nboot/2) + 1]]
-    bootest = mean(bvec)
-    bootse  = std(bvec)
-    p       = mean(bvec .<0) + 0.5*mean(bvec .==0)
-    p       = 2*min(p, 1-p)
-    data    = DataFrame(iv, m, dv)
-    regfit1 = coeftable(lm( :(x3 ~ x1     ), data))
-    regfit2 = coeftable(lm( :(x2 ~ x1     ), data))
-    regfit3 = coeftable(lm( :(x3 ~ x1 + x2), data))
-    regfit  = rbind(regfit1[2,:], regfit2[2,:], regfit3[2:3,:])
-
-    estimate  = regfit2[2,1]*regfit3[3,1]
-    sobel_se  = sqrt(regfit[4, 1]*regfit[4, 1]*regfit[2, 2]*regfit[2, 2]+
-                     regfit[2, 1]*regfit[2, 1]*regfit[4, 2]*regfit[4, 2]+
-                     regfit[2, 2]*regfit[2, 2]*regfit[4, 2]*regfit[4, 2])
-    sobel     = DataFrame(estimate,
-                          sobel_se,
-                          estimate/sobel_se,
-                          estimate - Rmath.qnorm(.975)*sobel_se,
-                          estimate + Rmath.qnorm(.975)*sobel_se,
-                          2*(1-Rmath.pnorm(abs(estimate/sobel_se))))
-    #return nboot, n, regfit, sobel, bootest, bootci, p
-    if plotit
-        dens = kde(bvec)
-        plot(dens.x, dens.density)
-    end
-    output = indirectTestOutput()
-    output.nboot   = nboot
-    output.n       = n
-    output.sobel   = sobel
-    output.regfit  = regfit
-    output.bootest = bootest
-    output.bootci  = bootci
-    output.p       = p
-    output.bootse  = bootse
-    output
-end
 
 
 #
