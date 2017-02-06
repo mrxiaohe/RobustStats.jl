@@ -374,3 +374,132 @@ function indirectTest{S <: Real, T <: Real, W <: Real}(dv::AbstractArray{S}, iv:
     output.bootse  = bootse
     output
 end
+
+
+
+function outer{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}, f::Function)
+    nx      = length(x)
+    ny      = length(y)
+    output  = zeros(nx, ny)
+    for i = 1:ny
+        for j = 1:nx
+            output[j, i] = f(x[j], y[i])
+        end
+    end
+    return output
+end
+
+function hd{S <: Real}(x::AbstractArray{S}; q::Real=0.5)
+    #Compute the Theil-Sen regression estimator.
+    # Only a single predictor is allowed in this version
+    const n = length(x)
+    m1   = ( n + 1 )*q
+    m2   = ( n + 1 )*(1 - q)
+    vec1 = [1:n]./n
+    vec2 = ([1:n] - 1)./n
+    w    = Rmath.pbeta( vec1, m1, m2 ) - Rmath.pbeta( vec2,  m1, m2 )
+    return sum( w.*sort(x) )
+end
+
+function tsp1reg{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}, HD::Bool)
+    order = sortperm( x )
+    xsort = x[ order ]
+    ysort = y[ order ]
+    vec1  = outer( ysort, ysort, - )
+    vec2  = outer( xsort, xsort, - )
+    v1    = vec1[ vec2 .> 0 ]
+    v2    = vec2[ vec2 .> 0 ]
+    b1    = median!( v1./v2 )
+    b0    = 0.0
+    if !HD
+        b0 = median( y ) - b1 * median( x )
+    else
+        b0 = hd( y ) - b1*hd( x )
+    end
+    return [b0, b1]
+end
+
+function tsreg_coef(mf::ModelFrame, HD::Bool, iter::Integer)
+    y     = vector( model_response( mf ) )
+    x     = ModelMatrix(mf).m[:,2:end]
+    np, n = size(x, 2), size(x, 1)
+
+    #ONE PREDICTOR
+    if np == 1
+        coef = tsp1reg( x[:], y, false )
+    #    coef[1], coef[2] =  output.intercept, output.slope
+    #    res = output.res
+    else
+    #MULTIPLE PREDICTORS
+        coef_temp = zeros( np )
+        for p = 1:np
+            coef_temp[p] = tsp1reg( x[:,p], y, false )[2]
+        end
+        res = y - x*coef_temp
+        if !HD
+            b0 = median!( res )
+        else
+            b0 = hd( res )
+        end
+        #r = zeros( n )
+        #coef_old = coef_temp[:]
+        for i = 1:iter
+            for p = 1:np
+                r = y - x*coef_temp - b0 + coef_temp[p].*x[:,p]
+                coef_temp[p] = tsp1reg(x[:,p], r, false)[2]
+            end
+            if !HD
+                b0 = median!( y - x*coef_temp )
+            else
+                b0 = hd( y - x*coef_temp )
+            end
+            coef_old = coef_temp[:]
+        end
+        coef = [b0, coef_temp]
+    end
+    return coef
+end
+
+
+
+function tsreg(formula::Expr, dataframe::AbstractDataFrame; varfun::Function=pbvar, corfun::Function=pbcor, HD::Bool=false, iter::Integer=10)
+#  Compute Theil-Sen regression estimator
+#  Gauss-Seidel algorithm is used when there is more than one predictor
+    mf = ModelFrame( formula, dataframe )
+
+    #WILL ADD THE ABILITY TO DO MULTIPLE REGRESSION
+    output = regOut()
+    coef   = zeros(2)
+    res    = zeros(n)
+    if np == 1
+        output = tsp1reg( vector( mf[2] ), mr )
+        coef[1], coef[2] =  output.intercept, output.slope
+    else
+        stop("Only 1 predictor is allowed.")
+    end
+
+    res  = temp1.res
+    yhat = y - res
+
+    epow   = pbvar(yhat)/pbvar(y)
+    if epow >= 1
+        epow = sqrt( pbcor(yhat, y).estimate )
+    end
+    stre   = sqrt(epow)
+    output = DataFrame()
+    output["b0"] = temp1.intercept
+    output["b1"] = temp1.slope
+    output["strength of assoc."] = stre
+    output["explanatory power"]  = epow
+
+    if np == 1
+        lm_coef = coef(lm( formula, dataframe ))
+        p     = FramedPlot()
+        pts   = Points( vector(mf[2]), mr , "type", "dot")
+        s1    = Slope( lm_coef[2], (0, lm_coef[1]), "type", "solid", "color", "blue")
+        s2    = Slope( temp1.slope, (0, temp1.intercept), "type", "solid", "color", "red")
+        add(p, pts, s1, s2)
+        Winston.display(p)
+    end
+    output
+end

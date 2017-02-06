@@ -89,4 +89,42 @@ This function is able to handle multiple dependent groups. Suppose that the orig
                Estimate  Std.Error       CI lo      CI hi    P value
      Effect:  -0.048598   0.084280   -0.298647   0.019394   0.420800
 
- if we add `plotit=true`, we get a kernel density plot of the effects derived from bootstrap samples:
+if we add `plotit=true`, we get a kernel density plot of the effects derived from bootstrap samples:
+
+#### `t1way()`
+A heteroscedastic one-way ANOVA for trimmed means using a generalization of Welch's method. When `tr=0`, the function conducts a heteroscedastic 1-way ANOVA without trimming.
+
+There are two ways to specify data for the function:
+* A two dimensional array where each column represents a group. Hence, a 10 X 3 array means that a one way ANOVA will be performed on 3 groups. This also means equal sample sizes amongst the groups.
+* A vector containing the outcome variable and another vector containing group information.
+
+Two examples are shown below to demonstrate the two ways of specifying data:
+
+    #Data in two dimensional array form
+    #Prepare data
+    julia> srand(12)
+    julia> m2 = reshape(sort(randn(30)), 10, 3);
+
+    julia> t1way(m2)
+    Heteroscedastic one-way ANOVA for trimmed means
+    using a generalization of Welch's method.
+
+    Sample size:          10   10   10
+    Degrees of freedom:   2.00   8.25
+    Statistic:            20.955146
+    p value:              0.000583
+
+
+    #Data in vector form
+    julia> srand(12)
+    julia> m3 = sort(randn(30));
+    julia> group = rep(1:3, [8,12,10]);   #Unequal sample sizes: n1 = 8, n2 = 12, n3 = 10
+
+    julia> t1way(m3, group)
+    Heteroscedastic one-way ANOVA for trimmed means
+    using a generalization of Welch's method.
+
+    Sample size:          8   12   10
+    Degrees of freedom:   2.00   8.11
+    Statistic:            28.990510
+    p value:              0.000202
