@@ -30,10 +30,6 @@ export
     msmedse,
     binomci,
     acbinomci,
-
-    akerd,
-    rdplot,
-
     sint,
     sintv2,
     seq,
@@ -43,7 +39,7 @@ export
     mom,
     momci,
     contam_randn,
-    
+
     trimpb,
     trimcibt,
     indt,
@@ -61,13 +57,7 @@ export
     scaleS,
     scaleS!,
     scaleQ,
-    scaleQ!,
-
-# Below here in unmaintained.jl
-    stein1,
-    stein2,
-    stein1_tr,
-    stein2_tr
+    scaleQ!
 
 
 include("types.jl")
@@ -76,5 +66,4 @@ include("show.jl")
 include("functions.jl")
 include("location_estimators.jl")
 include("dispersion_estimators.jl")
-include("unmaintained.jl")
 end

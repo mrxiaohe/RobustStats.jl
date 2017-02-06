@@ -26,8 +26,6 @@ out = trimci(x)
 @test out.estimate ≈ 1.2921802666666669
 @test out.p ≈ 0.005243565819244678
 
-@test stein1(x, 1) == 41
-
 q1,q3 = idealf(x)
 @assert length(x) == 20
 @test q1 ≈ y[5]*7/12+y[6]*5/12
