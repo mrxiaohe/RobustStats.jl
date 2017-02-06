@@ -1,16 +1,12 @@
 __precompile__()
 
 module RobustStats
-using Compat
 
+using Compat
 using DataFrames
 using Rmath
 using StatsBase
-using PyPlot
 import Base.show
-import DataFrames.complete_cases
-import DataFrames.deleterows!
-
 
 export
     outOutput,

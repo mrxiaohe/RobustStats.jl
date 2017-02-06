@@ -1,3 +1,4 @@
+using PyPlot
 
 type indtOutput
     method
