@@ -147,3 +147,98 @@ function stein2_tr(x::Array, y::Array; alpha::Real=0.05, tr::Real=.2, method::Bo
         return output
     end
 end
+
+
+
+#Compute adaptive kernel density estimate for univariate data
+function akerd{S <: Real}(x::AbstractArray{S}; hval::Real=NaN, aval::Real=0.5,
+               fr::Real=0.8, pts=NaN,
+               plotit=true, xlab="", ylab="", title="", color="black")
+    if isnan(pts)
+       pts = x[:]
+    end
+    pts  = sort!(pts)
+
+    m = _estimate_dispersion(x)
+    fhat  = rdplot(x, pts=pts, plotit=false, fr=fr)
+    const n = length(x)
+    if isnan(hval)
+        A = min(std(x), iqrn(x))
+        if A==0.0; A = winstd(x)/0.64; end
+        hval = 1.06*A/n^0.2
+    end
+    gm = 0.0
+    gm_int = 0
+    const nfhat = length(fhat)
+    for i = 1:nfhat
+        if fhat[i] > 0.0
+            gm += log(fhat[i])
+            gm_int += 1
+        end
+    end
+    gm = exp(gm/gm_int)
+    alam = (fhat/gm).^(-aval)
+    dhat = akerd_loop(x, pts, hval, alam)
+    if plotit
+        plot(pts, dhat, color=color)
+        plt[:title](title)
+        plt[:xlabel](xlab)
+        plt[:ylabel](ylab)
+    end
+    dhat
+end
+
+function akerd_loop(x, pts, hval, alam)
+    npts  = length(pts)
+    dhat  = zeros(npts)
+    sqrt5 = sqrt(5)
+    n     = length(x)
+    temp  = zeros(n)
+    for i = 1:npts
+        epan_alam_hval = 0.0
+        for j = 1:n
+            temp[j] = (pts[i]-x[j])/(hval*alam[j])
+            if abs(temp[j]) < sqrt5
+                epan_alam_hval += (0.75*(1-0.2*temp[j]*temp[j])/sqrt5)/alam[j]
+            end
+        end
+        dhat[i]=epan_alam_hval/npts
+    end
+    return dhat./hval
+end
+
+
+
+#Expected frequency curve. fr controls amount of smoothing, theta is the azimuthal direction and
+#phi the colatitude
+function rdplot{S <: Real}(x::AbstractArray{S}; fr::Real=NaN, pts=NaN,
+                           plotit=true, title="", xlab="", ylab="", color="black")
+    if fr == NaN; fr = 0.8; end
+    if pts == NaN; pts = x[:];end
+    rmd = [sum(near(x, pts[i], fr))*1.0 for i=1:length(pts)]
+    rmd /= length(x)
+    MAD = mad(x)
+    if MAD != 0.0
+        rmd /= 2fr*MAD
+    end
+    if plotit
+        index = sortperm(pts);
+        clf()
+        plot(pts[index], rmd[index], color=color)
+        plt[:title](title)
+        plt[:xlabel](xlab)
+        plt[:ylabel](ylab)
+    end
+    rmd
+end
+
+
+"""`near(x, pt, fr=1.0)`
+
+Determine which values in `x` are near `pt`. Return a BitArray giving whether
+each value of `x` is within `fr*m` of `pt`, where `m` is the dispersion measure
+returned by `_estimate_dispersion(x)`"""
+function near{S <: Real}(x::AbstractArray{S}, pt::Real, fr::Real=1.0)
+    m = _estimate_dispersion(x)
+    return abs(x-pt) .<= fr*m
+end

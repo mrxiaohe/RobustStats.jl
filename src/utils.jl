@@ -68,25 +68,6 @@ function trimcibt_loop(x, n, nboot, tr, side, randid, test)
     end
 end
 
-function akerd_loop(x, pts, hval, alam)
-    npts  = length(pts)
-    dhat  = zeros(npts)
-    sqrt5 = sqrt(5)
-    n     = length(x)
-    temp  = zeros(n)
-    for i = 1:npts
-        epan_alam_hval = 0.0
-        for j = 1:n
-            temp[j] = (pts[i]-x[j])/(hval*alam[j])
-            if abs(temp[j]) < sqrt5
-                epan_alam_hval += (0.75*(1-0.2*temp[j]*temp[j])/sqrt5)/alam[j]
-            end
-        end
-        dhat[i]=epan_alam_hval/npts
-    end
-    return dhat./hval
-end
-
 
 #Faster Pearson's r for
 function cor!(x, y)
