@@ -620,7 +620,7 @@ The default number of bootstrap resamplings is nboot=2000."""
 function momci{S <: Real}(x::AbstractArray{S}; bend::Real=2.24, alpha::Real=0.05,
     nboot::Integer=2000, seed=2, nv::Real=NaN)
     estimator(z) = mom!(z, bend=bend)
-    bootstrapci(x, est=estimator, alpha=alpha, nboot=nboot, seed=seed, nv=nv)
+    bootstrapci(copy(x), est=estimator, alpha=alpha, nboot=nboot, seed=seed, nv=nv)
 end
 
 """`contam_randn([T=Float64], n; epsilon=0.1, k=10.0)`
@@ -848,30 +848,27 @@ function bootse{S <: Real}(x::AbstractArray{S}; nboot::Integer=1000, est::Functi
     return std(bvec)
 end
 
-#   Compute a .95 confidence interval for Pearson's correlation coefficient.
-#
-#   This function uses an adjusted percentile bootstrap method that
-#   gives good results when the error term is heteroscedastic.
-function pcorb{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; seed=2, plotit::Bool=false)
+"""`procb(x, y; seed=2)`
+
+Compute a .95 confidence interval for Pearson's correlation coefficient.
+
+This function uses an adjusted percentile bootstrap method that
+gives good results when the error term is heteroscedastic.
+"""
+function pcorb{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; seed=2)
    if isa(seed, Bool)
-        if seed
-            srand(2)
-        end
+        seed && srand(2)
     else
         srand(seed)
     end
-    n=length(x)
-    randid=rand(1:n, n*599)
-    tempx=zeros(n)
-    tempy=zeros(n)
-    bvec=zeros(599)
-    for i=1:(599*n)
-        if (i%n)!=0
-            tempx[i%n], tempy[i%n]=x[randid[i]], y[randid[i]]
-        else
-            tempx[n], tempy[n]=x[randid[i]], y[randid[i]]
-            bvec[div(i, n)]=cor!(tempx, tempy)
-        end
+    const n = length(x)
+    # Wow. Every number in this function is totally magic.
+    bvec=zeros(Float64, 599)
+    for i=1:599
+        randid=rand(1:n, n)
+        tempx = x[randid]
+        tempy = y[randid]
+        bvec[i]=cor(tempx, tempy)
     end
     if n >= 250
         ilow, ihi = 15, 584
@@ -884,13 +881,9 @@ function pcorb{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; s
     else
         ilow, ihi = 7, 593
     end
-    bvec=sort!(bvec)
-    if plotit
-        akerd(bvec, title="Distribution of Bootstrap Pearson Correlation Coefficients")
-    end
-    r=cor!(x, y)
+    sort!(bvec)
     output = testOutput()
-    output.estimate = r
+    output.estimate = cor(x, y)
     output.ci = [bvec[ilow], bvec[ihi]]
     output
 end

@@ -8,6 +8,7 @@ y = sort(x)
 test_approx(a,b, atol) = @test isapprox(a,b, atol=atol)
 # Tests are based on examples from README
 
+
 @test mean(x) ≈ 1.853401259
 @test tmean(x) ≈ 1.2921802666666669
 @test tmean(x, tr=0) ≈ 1.853401259
@@ -70,11 +71,12 @@ s = sint(x, 0.6)
 # #srand(2)
 # #y = randn(20) + 2.0
 # y = [2.73962,1.25549,1.39149,0.276543,1.32438,2.55665,1.13842,2.51809,3.24823,3.16911,1.90698,0.707597,1.98813,2.57913,1.31969,1.73992,2.2905,1.63649,3.24779,2.27172]
-# # 31. pcorb()
-# corval = pcorb(x, y)
-# test_approx(corval.estimate, 0.318931, 1e-6)
-# test_approx(corval.ci[1], -0.106467, 1e-2)
-# test_approx(corval.ci[2], 0.663678, 1e-2)
+
+cv = pcorb(x, x.^5)
+@test cv.estimate ≈ 0.8026388958896737
+@test cv.ci[1] ≈ 0.6836999351727973
+@test cv.ci[2] ≈ 0.9634782953906714
+
 #
 # #srand(3)
 # #y2 = randn(20)+3;

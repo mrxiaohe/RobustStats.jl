@@ -297,12 +297,12 @@ Compute a 1-alpha confidence interval for the trimmed mean using a bootstrap per
 
 
 
-####31. `pcorb()`
+#### `pcorb`
 Compute a .95 confidence interval for Pearson's correlation coefficient. This function uses an adjusted percentile bootstrap method that gives good results when the error term is heteroscedastic.
 
-    julia> pcorb(x, y)
-    Estimate:             0.318931
-    Confidence interval: -0.106467       0.663678
+    julia> pcorb(x, x.^5)
+     Estimate:             0.802639
+     Confidence interval:  0.683700       0.963478
 
 
 ####32. `yuend()`

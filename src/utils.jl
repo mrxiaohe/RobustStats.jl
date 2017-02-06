@@ -69,19 +69,6 @@ function trimcibt_loop(x, n, nboot, tr, side, randid, test)
 end
 
 
-#Faster Pearson's r for
-function cor!(x, y)
-    n=length(x)
-    xbar=mean(x); ybar=mean(y)
-    top=bot1=bot2=0.0
-    for i=1:n
-        top+=(x[i]-xbar).*(y[i]-ybar)
-        bot1+=(x[i]-xbar)*(x[i]-xbar)
-        bot2+=(y[i]-ybar)*(y[i]-ybar)
-    end
-    top./sqrt(bot1.*bot2)
-end
-
 function regts1(vstar, yhat, res, mflag, x, tr)
     const n=length(res)
     ystar=zeros(n)
