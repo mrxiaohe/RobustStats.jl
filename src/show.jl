@@ -110,65 +110,8 @@ function show(io::IO, object::outOutput)
     end
 end
 
-function show(io::IO, object::indtOutput)
-    if object.method!=nothing
-        println(io, "$(object.method)")
-    end
-    if object.flag!=2
-            @printf("Kolmogorov-Smirnov test statistic:  % .6f\n", object.dstat)
-        if object.pval_d >=1
-            @printf("Kolmogorov-Smirnov p value:          1.0\n")
-        elseif object.pval_d < 10e-16
-            @printf("Kolmogorov-Smirnov p value:         < 10e-16\n")
-        else
-            @printf("Kolmogorov-Smirnov p value:         % .6f\n", object.pval_d)
-        end
-    end
-    if object.flag!=1
-            @printf("Cramer-von Mises test statistic:    % .6f\n", object.wstat)
-        if object.pval_w >=1
-            @printf("Cramer-von Mises p value:            1.0\n")
-        elseif object.pval_w < 10e-16
-            @printf("Cramer-von Mises p value:           < 10e-16\n")
-        else
-            @printf("Cramer-von Mises p value:           % .6f\n", object.pval_w)
-        end
-    end
-end
-
-
 function show(io::IO, object::binomciOutput)
    @printf(" p_hat:               %.4f\n", object.p_hat)
    @printf(" confidence interval: %.4f   %.4f\n", object.confint[1], object.confint[2])
    @printf(" Sample size          %d\n", object.n)
-end
-
-
-function show(io::IO, object::indirectTestOutput)
-    @printf("\nTESTS OF INDIRECT EFFECT\n\n")
-    @printf("Sample size:  %d\n", object.n)
-    @printf("Number of bootstrap samples: %d\n\n", object.nboot)
-    @printf("DIRECT AND TOTAL EFFECTS\n")
-    @printf("          % 8s  %9s    %8s   %8s\n", "Estimate", "Std.Error", "t value", "Pr(>|t|)")
-    @printf("b(YX):   % 8.6f   %8.6f   % 8.6f   %8.6f\n",
-            object.regfit[1,1], object.regfit[1,2], object.regfit[1,3], object.regfit[1,4])
-    @printf("b(MX):   % 8.6f   %8.6f   % 8.6f   %8.6f\n",
-            object.regfit[2,1], object.regfit[2,2], object.regfit[2,3], object.regfit[2,4])
-    @printf("b(YM.X): % 8.6f   %8.6f   % 8.6f   %8.6f\n",
-            object.regfit[3,1], object.regfit[3,2], object.regfit[3,3], object.regfit[3,4])
-    @printf("b(YX.M): % 8.6f   %8.6f   % 8.6f   %8.6f\n\n",
-            object.regfit[4,1], object.regfit[4,2], object.regfit[4,3], object.regfit[4,4])
-
-    @printf("INDIRECT EFFECT AND SIGNIFICANCE USING NORMAL DISTRIBUTION\n")
-    @printf("          % 8s  %9s    %8s   %8s   %8s  %8s \n",
-            "Estimate", "Std.Error", "z score", "CI lo", "CI hi", "Pr(>|z|)")
-    @printf("Sobel:   % 8.6f   %8.6f   % 8.6f  % 8.6f  % 8.6f  %8.6f\n\n",
-            object.sobel[1,1], object.sobel[1,2], object.sobel[1,3],
-            object.sobel[1,4], object.sobel[1,5], object.sobel[1,6])
-
-    @printf("BOOTSTRAP RESULTS OF INDIRECT EFFECT\n")
-    @printf("          % 8s  %9s    %8s   %8s   %8s \n",
-            "Estimate", "Std.Error", "CI lo", "CI hi", "P value")
-    @printf("Effect:  % 8.6f   %8.6f   % 8.6f  % 8.6f   %8.6f\n",
-            object.bootest, object.bootse, object.bootci[1], object.bootci[2], object.p)
 end

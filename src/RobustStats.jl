@@ -39,15 +39,13 @@ export
     mom,
     momci,
     contam_randn,
-
     trimpb,
-    trimcibt,
-    indt,
     pcorb,
+
+    trimcibt,
     bootse,
-    indirectTest,
     yuend,
-    t1way,
+
     bisquareWM,
     huberWM,
     trimean,

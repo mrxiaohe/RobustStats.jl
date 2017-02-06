@@ -1,3 +1,90 @@
+
+type indtOutput
+    method
+    dstat
+    pval_d
+    wstat
+    pval_w
+    flag
+end
+
+type indirectTestOutput
+    nboot
+    n
+    regfit
+    sobel
+    bootest
+    bootci
+    bootse
+    p
+end
+
+indirectTestOutput()=indirectTestOutput(nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing,
+                                        nothing)
+
+
+function show(io::IO, object::indtOutput)
+    if object.method!=nothing
+        println(io, "$(object.method)")
+    end
+    if object.flag!=2
+            @printf("Kolmogorov-Smirnov test statistic:  % .6f\n", object.dstat)
+        if object.pval_d >=1
+            @printf("Kolmogorov-Smirnov p value:          1.0\n")
+        elseif object.pval_d < 10e-16
+            @printf("Kolmogorov-Smirnov p value:         < 10e-16\n")
+        else
+            @printf("Kolmogorov-Smirnov p value:         % .6f\n", object.pval_d)
+        end
+    end
+    if object.flag!=1
+            @printf("Cramer-von Mises test statistic:    % .6f\n", object.wstat)
+        if object.pval_w >=1
+            @printf("Cramer-von Mises p value:            1.0\n")
+        elseif object.pval_w < 10e-16
+            @printf("Cramer-von Mises p value:           < 10e-16\n")
+        else
+            @printf("Cramer-von Mises p value:           % .6f\n", object.pval_w)
+        end
+    end
+end
+
+
+function show(io::IO, object::indirectTestOutput)
+    @printf("\nTESTS OF INDIRECT EFFECT\n\n")
+    @printf("Sample size:  %d\n", object.n)
+    @printf("Number of bootstrap samples: %d\n\n", object.nboot)
+    @printf("DIRECT AND TOTAL EFFECTS\n")
+    @printf("          % 8s  %9s    %8s   %8s\n", "Estimate", "Std.Error", "t value", "Pr(>|t|)")
+    @printf("b(YX):   % 8.6f   %8.6f   % 8.6f   %8.6f\n",
+            object.regfit[1,1], object.regfit[1,2], object.regfit[1,3], object.regfit[1,4])
+    @printf("b(MX):   % 8.6f   %8.6f   % 8.6f   %8.6f\n",
+            object.regfit[2,1], object.regfit[2,2], object.regfit[2,3], object.regfit[2,4])
+    @printf("b(YM.X): % 8.6f   %8.6f   % 8.6f   %8.6f\n",
+            object.regfit[3,1], object.regfit[3,2], object.regfit[3,3], object.regfit[3,4])
+    @printf("b(YX.M): % 8.6f   %8.6f   % 8.6f   %8.6f\n\n",
+            object.regfit[4,1], object.regfit[4,2], object.regfit[4,3], object.regfit[4,4])
+
+    @printf("INDIRECT EFFECT AND SIGNIFICANCE USING NORMAL DISTRIBUTION\n")
+    @printf("          % 8s  %9s    %8s   %8s   %8s  %8s \n",
+            "Estimate", "Std.Error", "z score", "CI lo", "CI hi", "Pr(>|z|)")
+    @printf("Sobel:   % 8.6f   %8.6f   % 8.6f  % 8.6f  % 8.6f  %8.6f\n\n",
+            object.sobel[1,1], object.sobel[1,2], object.sobel[1,3],
+            object.sobel[1,4], object.sobel[1,5], object.sobel[1,6])
+
+    @printf("BOOTSTRAP RESULTS OF INDIRECT EFFECT\n")
+    @printf("          % 8s  %9s    %8s   %8s   %8s \n",
+            "Estimate", "Std.Error", "CI lo", "CI hi", "P value")
+    @printf("Effect:  % 8.6f   %8.6f   % 8.6f  % 8.6f   %8.6f\n",
+            object.bootest, object.bootse, object.bootci[1], object.bootci[2], object.p)
+end
+
 # We have no idea what this does.
 function stein1{S <: Real}(x::AbstractArray{S}, delta::Real; alpha::Real=0.05,
     pow::Real=0.8, oneside::Bool=false, n=nothing, variance=nothing)
@@ -243,6 +330,17 @@ function near{S <: Real}(x::AbstractArray{S}, pt::Real, fr::Real=1.0)
     return abs(x-pt) .<= fr*m
 end
 
+
+function regts1(vstar, yhat, res, mflag, x, tr)
+    const n=length(res)
+    ystar=zeros(n)
+    [ystar[i]=yhat+res[i].*vstar[i] for i=1:n]
+    rval=zeros(n)
+    ystar_bar=tmean(ystar, tr=tr)
+    rval=zeros(n)
+    [rval[i]= sum(ystar[mflag[:,i]]-ystar_bar) for i=1:n]
+    return rval
+end
 
 # Test the hypothesis of independence between x and y by
 # testing the hypothesis that the regression surface is a horizontal plane.
@@ -501,5 +599,64 @@ function tsreg(formula::Expr, dataframe::AbstractDataFrame; varfun::Function=pbv
         add(p, pts, s1, s2)
         Winston.display(p)
     end
+    output
+end
+
+
+
+
+function bootindirect{S <: Real, T <: Real, W <: Real}(x::Vector{S}, y::Vector{T}, m::Vector{W}, nboot::Integer)
+    n = length(x)
+    tempx  = hcat(rep(1.0, n), zeros(n))
+    tempy  = zeros(n)
+    tempm  = zeros(n)
+    tempmx = hcat(rep(1.0, n), zeros(Real, n), zeros(Real, n))
+    bvec   = zeros(nboot)
+    randid = rand(1:n, n*nboot)
+    for i = 1:nboot
+        for j = 1:n
+            tempx[j,2] = tempmx[j,2] = x[randid[(i-1)*n + j]]
+            tempy[j]   = y[randid[(i-1)*n + j]]
+            tempm[j]   = tempmx[j,3] = m[randid[(i-1)*n + j]]
+        end
+        bvec[i] = (inv(tempx'tempx)'*(tempx'tempm))[2]*(inv(tempmx'tempmx)'*(tempmx'tempy))[3]
+    end
+    bvec
+end
+
+
+
+function t1waycore(args...)
+    x, grp, tr, method = args[1], args[2], args[3], args[4]
+    g = unique(grp)
+    J = length(g)
+    h, w, xbar, n = zeros(J), zeros(J), zeros(J), zeros(J)
+
+    for j = 1:J
+        n[j] = sum(grp.==g[j])
+        temp = x[grp.==g[j]]
+        h[j] = n[j] - 2*floor(tr*n[j])
+        w[j] = h[j]*(h[j] - 1)/((n[j] -1)*winvar(temp, tr=tr))
+        xbar[j] = tmean(temp, tr=tr)
+    end
+    u = sum(w)
+    xtil = sum(w .* xbar)/u
+    A = sum(w .* (xbar - xtil).*(xbar - xtil))/(J - 1)
+    B = 2*(J - 2)*sum((1 - w./u).*(1 - w./u)./(h - 1))/(J*J - 1)
+    statistic = A/(B + 1)
+    nu1 = J - 1
+    nu2 = 1/(3 * B/2/(J-2))
+    p   = 1 - Rmath.pf(statistic, nu1, nu2)
+    if method
+        METHOD="Heteroscedastic one-way ANOVA for trimmed means\nusing a generalization of Welch's method.\n"
+    else
+        METHOD=nothing
+    end
+    output    = testOutput()
+    output.n  = n
+    output.df = [nu1, nu2]
+    output.statistic = statistic
+    output.p  = p
+    output.method = METHOD
     output
 end
