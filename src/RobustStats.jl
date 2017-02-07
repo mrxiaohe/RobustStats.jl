@@ -32,6 +32,7 @@ export
     hpsi,
     onestep,
     bootstrapci,
+    bootstrapse,
     mom,
     momci,
     contam_randn,
@@ -40,7 +41,6 @@ export
     yuend,
 
     trimcibt,
-    bootse,
 
     bisquareWM,
     huberWM,

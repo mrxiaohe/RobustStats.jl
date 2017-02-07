@@ -550,7 +550,7 @@ function onestep{S <: Real}(x::AbstractArray{S}, bend::Real=1.28)
     return MED + MAD*A/B
 end
 
-"""`bootstrapci(x; est=onestep, alpha=0.05, nboot=2000)`
+"""`bootstrapci(x; est=onestep, alpha=0.05, nboot=2000, nullvalue=NaN)`
 
 Compute a (1-α) confidence interval for the location-estimator function `est`
 using a bootstrap calculation. The default estimator is `onestep`. If `nullvalue` is
@@ -565,13 +565,9 @@ function bootstrapci{S <: Real}(x::AbstractArray{S}; est::Function=onestep,
     end
     const n = length(x)
     bvec = zeros(nboot)
-    temp = zeros(n)
-    randid=rand(1:n, n, nboot)
     for i = 1:nboot
-        for j = 1:n
-            temp[j] = x[randid[j,i]]
-        end
-        bvec[i]=est(temp)
+        randid=rand(1:n, n)
+        bvec[i]=est(x[randid])
     end
     low::Int = round((alpha/2)*nboot) + 1
     up = nboot-low + 1
@@ -588,6 +584,27 @@ function bootstrapci{S <: Real}(x::AbstractArray{S}; est::Function=onestep,
     output.ci = [bvec[low], bvec[up]]
     output.p = pv
     output
+end
+
+"""`bootstrapse(x; est=median, alpha=0.05, nboot=2000)`
+
+Compute the standard error of the location-estimator function `est`
+using a bootstrap calculation. The default estimator is `median`.
+"""
+function bootstrapse{S <: Real}(x::AbstractArray{S};
+        nboot::Integer=1000, est::Function=median, seed=2)
+    if isa(seed, Int)
+        srand(seed)
+    elseif seed
+        srand(2)
+    end
+    const n = length(x)
+    bvec = zeros(nboot)
+    for i = 1:nboot
+        randid=rand(1:n, n)
+        bvec[i]=est(x[randid])
+    end
+    std(bvec)
 end
 
 
@@ -729,34 +746,6 @@ function trimcibt{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05
         output.p = pval
         return output
     end
-end
-
-#   Compute bootstrap estimate of the standard error of the
-#   estimator est
-#   The default number of bootstrap samples is nboot=1000
-
-function bootse{S <: Real}(x::AbstractArray{S}; nboot::Integer=1000, est::Function=median, seed=2)
-   if isa(seed, Bool)
-        if seed
-            srand(2)
-        end
-    else
-        srand(seed)
-    end
-    n=length(x)
-    temp=zeros(n)
-    bvec=zeros(nboot)
-    randid=rand(1:n, n*nboot)
-    for i=1:(nboot*n)
-        if (i%n)!=0
-            temp[i%n]=x[randid[i]]
-        else
-            temp[n]=x[randid[i]]
-            bvec[div(i, n)]=est(temp)
-
-        end
-    end
-    return std(bvec)
 end
 
 

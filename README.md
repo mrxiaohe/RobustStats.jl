@@ -211,13 +211,17 @@ Compute one-step M-estimator of location using Huber's ψ. The default bending c
 
 
 
-#### `bootstrapci`
-Compute a bootstrap, (1-α) confidence interval for the measure of location corresponding to the argument `est`. By default, a one-step M-estimator of location based on Huber's ψ is used. The default number of bootstrap samples is `nboot=2000`. `nullvalue` is the target value used when computing a p-value. Default α=0.05.
+#### `bootstrapci`, `bootstrapse`
+Compute a bootstrap, (1-α) confidence interval (`bootstrapci`) or a standard error (`bootstrapse`) for the measure of location corresponding to the argument `est`. By default, the median is used. Default α=0.05.
 
-    julia> bootstrapci(x)
-    Estimate:             1.305811
-    Confidence interval:  0.687723       2.259071
-    p value:             < 10e-16
+    julia> ci = bootstrapci(x, est=onestep, nullvalue=0.6)
+     Estimate:             1.305811
+     Confidence interval:  0.687723       2.259071
+     p value:              0.026000
+
+
+    julia> se = bootstrapse(x, est=onestep)
+    0.41956761772722817
 
 
 

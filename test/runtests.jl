@@ -60,9 +60,17 @@ mci = momci(x, seed=2, nboot=2000, nullvalue=0.6)
 @test mci.ci[2] ≈ 2.120978892222222
 @test mci.p ≈ 0.11099999999999999
 
-ci = sint(x).ci
-@test ci[1] ≈ 0.5474825849287168
-@test ci[2] ≈ 2.3752324887983707
+ci = bootstrapci(x, est=onestep, nullvalue=0.6)
+@test ci.estimate ≈ 1.3058109021286803
+@test ci.ci[1] ≈ 0.6877225172104009
+@test ci.ci[2] ≈ 2.259070870017077
+@test ci.p ≈ 0.026000000000000023
+se = bootstrapse(x, est=onestep)
+@test se ≈ 0.41956761772722817
+
+s = sint(x)
+@test s.ci[1] ≈ 0.5474825849287168
+@test s.ci[2] ≈ 2.3752324887983707
 s = sint(x, 0.6)
 @test s.ci[1] ≈ 0.5474825849287168
 @test s.ci[2] ≈ 2.3752324887983707
