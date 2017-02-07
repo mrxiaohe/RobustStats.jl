@@ -37,10 +37,10 @@ export
     contam_randn,
     trimpb,
     pcorb,
+    yuend,
 
     trimcibt,
     bootse,
-    yuend,
 
     bisquareWM,
     huberWM,

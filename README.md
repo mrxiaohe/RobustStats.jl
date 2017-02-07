@@ -291,7 +291,7 @@ Compute a .95 confidence interval for Pearson's correlation coefficient. This fu
      Confidence interval:  0.683700       0.963478
 
 
-####32. `yuend()`
+#### `yuend`
 Compare the trimmed means of two dependent random variables using the data in x and y. The default amount of trimming is 20%.
 
     julia> srand(3)

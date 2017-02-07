@@ -703,9 +703,9 @@ function trimcibt{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05
     itop=nboot-ibot-1
     ci=zeros(2)
     if method && side
-        METHOD="Bootstrap .95 confidence interval for the trimmed mean\nusing a bootstrap percentile t method\n"
+        METHOD="Bootstrap (1-α) confidence interval for the trimmed mean\nusing a bootstrap percentile t method\n"
     elseif method && !side
-        METHOD="Bootstrap .95 confidence interval for the trimmed mean\nusing a bootstrap percentile t method\n[NOTE: p value is computed only when side=true]\n"
+        METHOD="Bootstrap (1-α) confidence interval for the trimmed mean\nusing a bootstrap percentile t method\n[NOTE: p value is computed only when side=true]\n"
     else
         METHOD=nothing
     end
@@ -762,7 +762,7 @@ end
 
 """`procb(x, y; seed=2)`
 
-Compute a .95 confidence interval for Pearson's correlation coefficient.
+Compute a (1-α) confidence interval for Pearson's correlation coefficient.
 
 This function uses an adjusted percentile bootstrap method that
 gives good results when the error term is heteroscedastic.
@@ -802,31 +802,31 @@ end
 
 
 
-#
-#  Compare the trimmed means of two dependent random variables
-#  using the data in x and y.
-#  The default amount of trimming is 20%
-#
-#  Missing values (values stored as NA) are not allowed.
-#
-#  A confidence interval for the trimmed mean of x minus the
-#  the trimmed mean of y is computed and returned in yuend$ci.
-#  The significance level is returned in yuend$siglevel
-function yuend{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; tr::Real=0.2, alpha::Real=0.05, method::Bool=true)
-    n = length(x)
+"""`yuend(x,y; tr=0.2, alpha=0.05)`
+
+Compare the trimmed means of two dependent random variables `x` and `y`.
+The default amount of trimming `tr` is 20%.
+
+A (1-α) confidence interval for the difference of trimmed mean of `x` minus
+the trimmed mean of `y` is computed and returned in `yuend.ci`.
+The significance level is returned in `yuend.siglevel`.
+"""
+function yuend{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T};
+        tr::Real=0.2, alpha::Real=0.05, method::Bool=true)
+    const n = length(x)
     if n != length(y)
         error("`x` and `y` must agree in length")
     end
     h1::Integer = n - 2*floor(tr*n)
     q1 = (n - 1)*winvar(x, tr=tr)
     q2 = (n - 1)*winvar(y, tr=tr)
-    q3 = (n - 1)*wincor(x, y, tr=tr)[2]
+    q3 = (n - 1)*wincov(x, y, tr=tr)
     df = h1 - 1
-    se = sqrt((q1 + q2 - 2*q3)/(h1*(h1-1)))
+    se = sqrt((q1 + q2 - 2q3)/(h1*(h1-1)))
     crit = Rmath.qt(1 - alpha/2, df)
-    dif = tmean(x, tr=tr) - tmean(y, tr=tr)
-    confint = [dif - crit*se, dif + crit*se]
-    test = dif/se
+    meandif = tmean(x, tr=tr) - tmean(y, tr=tr)
+    confint = [meandif - crit*se, meandif + crit*se]
+    test = meandif/se
     p = 2*(1 - Rmath.pt(abs(test), df))
     if method
         METHOD="Comparing the trimmed means of two dependent variables.\n"
@@ -837,28 +837,12 @@ function yuend{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; t
     output.method = METHOD
     output.ci = confint
     output.p = p
-    output.estimate = dif
+    output.estimate = meandif
     output.se = se
     output.statistic = test
     output.n = n
     output.df = df
     output
-end
-
-#  A heteroscedastic one-way ANOVA for trimmed means using a generalization of Welch's method.
-
-function t1way{S <: Real}(x::Array{S, 2}; tr::Real=0.2, method::Bool=true)
-    n = size(x, 1)
-    g = [1:size(x, 2)]
-    grp = rep(g, rep(n, size(x, 2)))
-    x = x[:]
-    t1waycore(x, grp, tr, method)
-end
-
-function t1way{S <: Real}(x::AbstractArray{S}, grp::Vector; tr::Real=0.2, method::Bool=true)
-    g = unique(grp)
-    grpcopy = [find(g.==grp[i])[1] for i=1:length(grp)]
-    t1waycore(x, grpcopy, tr, method)
 end
 
 function pbos{S <: Real}(x::AbstractArray{S}; beta::Real=0.2)

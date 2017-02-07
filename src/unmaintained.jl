@@ -625,6 +625,22 @@ function bootindirect{S <: Real, T <: Real, W <: Real}(x::Vector{S}, y::Vector{T
     bvec
 end
 
+#  A heteroscedastic one-way ANOVA for trimmed means using a generalization of Welch's method.
+
+function t1way{S <: Real}(x::Array{S, 2}; tr::Real=0.2, method::Bool=true)
+    n = size(x, 1)
+    g = [1:size(x, 2)]
+    grp = rep(g, rep(n, size(x, 2)))
+    x = x[:]
+    t1waycore(x, grp, tr, method)
+end
+
+function t1way{S <: Real}(x::AbstractArray{S}, grp::Vector; tr::Real=0.2, method::Bool=true)
+    g = unique(grp)
+    grpcopy = [find(g.==grp[i])[1] for i=1:length(grp)]
+    t1waycore(x, grpcopy, tr, method)
+end
+
 
 
 function t1waycore(args...)

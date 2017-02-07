@@ -79,16 +79,12 @@ cv = pcorb(x, x.^5)
 @test cv.ci[1] ≈ 0.6836999351727973
 @test cv.ci[2] ≈ 0.9634782953906714
 
-#
-# #srand(3)
-# #y2 = randn(20)+3;
-# y2 = [4.19156,0.480267,5.07481,2.02675,2.89839,1.45749,3.10079,2.99803,4.00879,3.84422,4.15807,2.52484,2.75539,3.07187,2.48719,1.41976,3.51166,2.29273,1.8339,2.56761]
-#
-# # 32. yuend()
-# res = yuend(x, y2)
-# test_approx(res.estimate, -1.547776, 1e-6)
-# test_approx(res.se, 0.460304, 1e-6)
-# test_approx(res.p, 0.006336, 1e-4)
+srand(3)
+y2 = randn(20)+3;
+res = yuend(x, y2)
+test_approx(res.estimate, -1.547776, 1e-6)
+test_approx(res.se, 0.460304, 1e-6)
+test_approx(res.p, 0.006336, 1e-4)
 
 # Basic tests of the weighted means
 a = collect(-2:2)
