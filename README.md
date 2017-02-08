@@ -4,12 +4,69 @@ RobustStats
 
 [![Build Status](https://travis-ci.org/maximsch2/RobustStats.jl.svg?branch=master)](https://travis-ci.org/maximsch2/RobustStats.jl)
 
-Most functions in this file are robust statistical methods based on the R package WRS ([an R-Forge repository](https://r-forge.r-project.org/projects/wrs/)) by [Rand Wilcox](http://dornsife.usc.edu/cf/labs/wilcox/wilcox-faculty-display.cfm). Only a handful of functions are included at this point. Others were contributed by users as needed. [References](#References) can be found below.
+This package contains a variety of functions from the field robust statistical methods. Many are estimators of location or dispersion; others estimate the standard error or the confidence intervals for the location or dispresion estimators, generally computed by the bootstrap method.
+
+Many functions in this package are based on the R package WRS ([an R-Forge repository](https://r-forge.r-project.org/projects/wrs/)) by [Rand Wilcox](http://dornsife.usc.edu/cf/labs/wilcox/wilcox-faculty-display.cfm). Others were contributed by users as needed. [References](#References) to the statistics literature can be found below.
 
 This package requires `Compat`, `Rmath`, `Dataframes`, and `Distributions`. They can be installed automatically, or by invoking `Pkg.add("packagename")`.
 
+## Estimators
 
-##Examples
+### Location estimators:
+* `tmean(x, tr=0.2)`  - Trimmed mean: mean of data with the lowest and highest fraction `tr` of values omitted.
+* `winmean(x, tr=0.2)`- Winsorized mean: mean of data with the lowest and highest fraction `tr` of values squashed to the 20%ile or 80%ile value, respectively.
+* `tauloc(x)`         - Tau measure of location by Yohai and Zamar.
+* `onestep(x)`        - One-step M-estimator of location using Huber's ψ
+* `mom(x)`            - Modified one-step M-estimator of location (MOM)
+* `bisquareWM(x)`     - Mean with weights given by the bisquare rho function.
+* `huberWM(x)`        - Mean with weights given by Huber's rho function.
+* `trimean(x)`        - Tukey's trimean, the average of the median and the midhinge.
+
+### Dispersion estimators:
+* `winvar(x, tr=0.2)` - Winsorized variance.
+* `wincov(x, y, tr=0.2)` - Winsorized covariance.
+* `pbvar(x)`          - Percentage bend midvariance.
+* `bivar(x)`          - Biweight midvariance.
+* `tauvar(x)`         - Tau measure of scale by Yohai and Zamar.
+* `iqrn(x)`           - Normalized inter-quartile range (normalized to equal σ for Gaussians).
+* `shorthrange(x)`    - Length of the shortest closed interval containing at least half the data.
+* `scaleQ(x)`         - Normalized Rousseeuw & Croux Q statistic, from the 25%ile of all 2-point distances.
+* `scaleS(x)`         - Normalized Rousseeuw & Croux S statistic, from the median of the median of all 2-point distances.
+* `shorthrange!(x)`, `scaleQ!(x)`, and `scaleS!(x)` are non-copying (that is, `x`-modifying) forms of the above.
+
+### Confidence interval or standard error estimates:
+* `trimse(x)` - Standard error of the trimmed mean.
+* `trimci(x)` - Confidence interval for the trimmed mean.
+* `msmedse(x)` - Standard error of the median.
+* `binomci(s,n)` - Binomial confidence interval (Pratt's method).
+* `acbinomci(s,n)` - Binomial confidence interval (Agresti-Coull method).
+* `sint(x)`  - Confidence interval for the median (with optional p-value).
+* `momci(x)` - Confidence interval of the modified one-step M-estimator of location (MOM).
+* `trimpb(x)` - Confidence interval for trimmed mean.
+* `pcorb(x)` - Confidence intervale for Pearson's correlation coefficient.
+* `yuend` - Compare the trimmed means of two dependent random variables.
+* `bootstrapci(x, est=f)` - Compute a confidence interval for estimator `f(x)` by bootstrap methods.
+* `bootstrapse(x, est=f)` - Compute a standard error of estimator `f(x)` by bootstrap methods.
+
+### Utility functions:
+* `winval(x, tr=0.2)`         - Return a Winsorized copy of the data.
+* `idealf(x)`                 - Ideal fourths, interpolated 1st and 3rd quartiles.
+* `outbox(x)`                 - Outlier detection.
+* `hpsi(x)`                   - Huber's ψ function.
+* `contam_randn`              - Contaminated normal distribution (generates random deviates).
+* `_weightedhighmedian(x)`    - Weighted median (breaks ties by rounding up). Used in scaleQ.
+
+### Recommendations:
+For location, consider the `bisquareWM` with k=3.9σ, if you can make any reasonable guess as to the "Gaussian-like width" σ (see dispersion estimators for this).  If not, `trimean` is a good second choice, though less efficient. Also, though the author personally has no experience with them, `tauloc`, `onestep`, and `mom` might be useful.
+
+For dispersion, the `scaleS` is a good general choice, though `scaleQ` is very efficient for nearly Gaussian data.  The MAD is the most robust though less efficient.  If scaleS doesn't work, then shorthrange is a good second choice.
+
+The first reference on scaleQ and scaleS (below) is a lengthy discussion of the tradeoffs among scaleQ, scaleS, shortest half, and median absolute deviation (MAD, see BaseStats.mad for Julia implementation). All four have the virtue of having the maximum possible breakdown point, 50%. This means that replacing up to 50% of the data with unbounded bad values leaves the statistic still bounded. The efficiency of Q is better than S and S is better than MAD (for Gaussian distributions), and the influence of a single bad point and the bias due to a fraction of bad points is only slightly larger on Q or S than on MAD. Unlike MAD, the other three do not implicitly assume a symmetric distribution.
+
+To choose between Q and S, the authors note that Q has higher statistical efficiency, but S is typically twice as fast to compute and has lower gross-error sensitivity. An interesting advantage of Q over the others is that its influence function is continuous. For a rough idea about the efficiency, the large-N limit of the standardized variance of each quantity is 2.722 for MAD, 1.714 for S, and 1.216 for Q, relative to 1.000 for the standard deviation (given Gaussian data). The paper gives the ratios for Cauchy and exponential distributions, too; the efficiency advantages of Q are less for Cauchy than for the other distributions.
+
+
+## Examples
 
     #Set up a sample dataset:
     x=[1.672064, 0.7876588, 0.317322, 0.9721646, 0.4004206, 1.665123, 3.059971, 0.09459603, 1.27424, 3.522148,
@@ -294,34 +351,9 @@ Compare the trimmed means of two dependent random variables using the data in x 
     p value:              0.006336
 
 
-
 ### Unmaintained functions
 See `UNMAINTAINED.md` for information about functions that the maintainers have not yet
 understood but also not yet deleted entirely.
-
-## Estimators from other sources
-###Location estimators:
-* `bisquareWM(x)`     - Mean with weights given by the bisquare rho function.
-* `huberWM(x)`        - Mean with weights given by Huber's rho function.
-* `trimean(x)`        - Tukey's trimean, the average of the median and the midhinge.
-
-### Dispersion estimators:
-* `shorthrange(x)`    - Length of the shortest closed interval containing at least half the data.
-* `scaleQ(x)`         - Normalized Rousseeuw & Croux Q statistic, from the 25%ile of all 2-point distances.
-* `scaleS(x)`         - Normalized Rousseeuw & Croux S statistic, from the median of the median of all 2-point distances.
-* `shorthrange!(x)`, `scaleQ!(x)`, and `scaleS!(x)` are non-copying (that is, `x`-modifying) forms of the above.
-
-### Utility functions:
-* `_weightedhighmedian(x)`    - Weighted median (breaks ties by rounding up). Used in scaleQ.
-
-### Recommendations:
-For location, consider the `bisquareWM` with k=3.9*sigma, if you can make any reasonable guess as to the "Gaussian-like width" sigma (see dispersion estimators for this).  If not, trimean is a good second choice, though less efficient.
-
-For dispersion, the `scaleS` is a good general choice, though `scaleQ` is very efficient for nearly Gaussian data.  The MAD is the most robust though less efficient.  If scaleS doesn't work, then shorthrange is a good second choice.
-
-The first reference on scaleQ and scaleS (below) is a lengthy discussion of the tradeoffs among scaleQ, scaleS, shortest half, and median absolute deviation (MAD, see BaseStats.mad for Julia implementation). All four have the virtue of having the maximum possible breakdown point, 50%. This means that replacing up to 50% of the data with unbounded bad values leaves the statistic still bounded. The efficiency of Q is better than S and S is better than MAD (for Gaussian distributions), and the influence of a single bad point and the bias due to a fraction of bad points is only slightly larger on Q or S than on MAD. Unlike MAD, the other three do not implicitly assume a symmetric distribution.
-
-To choose between Q and S, the authors note that Q has higher statistical efficiency, but S is typically twice as fast to compute and has lower gross-error sensitivity. An interesting advantage of Q over the others is that its influence function is continuous. For a rough idea about the efficiency, the large-N limit of the standardized variance of each quantity is 2.722 for MAD, 1.714 for S, and 1.216 for Q, relative to 1.000 for the standard deviation (given Gaussian data). The paper gives the ratios for Cauchy and exponential distributions, too; the efficiency advantages of Q are less for Cauchy than for the other distributions.
 
 
 ## References

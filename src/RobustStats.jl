@@ -9,7 +9,6 @@ using StatsBase
 import Base.show
 
 export
-    outOutput,
     tmean,
     winval,
     winmean,
@@ -27,8 +26,6 @@ export
     binomci,
     acbinomci,
     sint,
-    sintv2,
-    seq,
     hpsi,
     onestep,
     bootstrapci,
