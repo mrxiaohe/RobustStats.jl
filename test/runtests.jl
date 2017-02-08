@@ -203,23 +203,22 @@ for N in datalengths
 		end
 		result = whm(a,w)
 		_verify_whm(a, w)
-		# println("Success on size $(N) and type $(eltype(w))")
 	end
 end
 @test_throws ArgumentError whm(collect(1:5),collect(1:4))
 
 
 @test RobustStats._slow_scaleQ([1,2,3,4,5,10]) ≈ scaleQ!([1,2,3,4,5,10])
-@test RobustStats._slow_scaleS([1,2,3,4,5,10]) ≈ scaleS!([1,2,3,4,5,10])
+@test RobustStats._slow_scaleS!([1,2,3,4,5,10]) ≈ scaleS!([1,2,3,4,5,10])
 @test RobustStats._slow_scaleQ([1,2,3,4,5,10.5]) ≈ scaleQ!([1,2,3,4,5,10.5])
-@test RobustStats._slow_scaleS([1,2,3,4,5,10.5]) ≈ scaleS!([1,2,3,4,5,10.5])
+@test RobustStats._slow_scaleS!([1,2,3,4,5,10.5]) ≈ scaleS!([1,2,3,4,5,10.5])
 
 NTESTS = 10
 for N in [2,3,4,5,6,7,8,9,10,11,12,15,20,25,50,100,151,200,225,250,299,350,399,500]
     for _=1:NTESTS
         a = randn(N)
         Q = RobustStats._slow_scaleQ(a)
-        S = RobustStats._slow_scaleS(a)
+        S = RobustStats._slow_scaleS!(a)
         @test Q ≈ scaleQ(a)
         @test Q ≈ scaleQ!(copy(a))
         @test S ≈ scaleS(a)
