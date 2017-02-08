@@ -677,3 +677,98 @@ function t1waycore(args...)
     output.method = METHOD
     output
 end
+
+
+#  Compute a (1-α) confidence interval for the trimmed mean
+#  using a bootstrap percentile t method.
+#
+#  The default amount of trimming is tr=.2
+#  side=T, for true,  indicates the symmetric two-sided method
+#
+#
+#  Side=F yields an equal-tailed confidence interval
+#
+#
+#  NOTE: p.value is reported when side=T only.
+#
+
+function trimcibt{S <: Real}(x::AbstractArray{S}; tr::Real=0.2, alpha::Real=0.05, nboot::Integer=2000, side::Bool=true,
+                             nullvalue::Real=0, seed=2, method::Bool=true)
+    if isa(seed, Bool)
+        if seed
+            srand(2)
+        end
+    else
+        srand(seed)
+    end
+    n=length(x)
+    test=(tmean(x, tr=tr)-nullval)./trimse(x, tr=tr)
+    randid=rand(1:n, n*nboot)
+    tempout=trimcibt_loop(x, n, nboot, tr, side, randid, test)
+    if side
+        tval=tempout[1]
+        pval=tempout[2]
+    end
+    icrit=floor((1-alpha)*nboot+0.5)
+    ibot=round(alpha*nboot/2)+1
+    itop=nboot-ibot-1
+    ci=zeros(2)
+    if method && side
+        METHOD="Bootstrap (1-α) confidence interval for the trimmed mean\nusing a bootstrap percentile t method\n"
+    elseif method && !side
+        METHOD="Bootstrap (1-α) confidence interval for the trimmed mean\nusing a bootstrap percentile t method\n[NOTE: p value is computed only when side=true]\n"
+    else
+        METHOD=nothing
+    end
+    if !side
+        ci[1]=tmean(x, tr=tr)-tempout[itop]*trimse(x, tr=tr)
+        ci[2]=tmean(x, tr=tr)-tempout[ibot]*trimse(x, tr=tr)
+        output = testOutput()
+        output.method = METHOD
+        output.estimate = tmean(x, tr=tr)
+        output.ci = ci
+        output.statistic = test
+        return output
+    else
+        ci[1]=tmean(x, tr=tr)-tval[icrit]*trimse(x, tr=tr)
+        ci[2]=tmean(x, tr=tr)+tval[icrit]*trimse(x, tr=tr)
+        output = testOutput()
+        output.method = METHOD
+        output.estimate = tmean(x, tr=tr)
+        output.ci = ci
+        output.statistic = test
+        output.p = pval
+        return output
+    end
+end
+
+
+function trimcibt_loop(x, n, nboot, tr, side, randid, test)
+    xbar=tmean(x, tr=tr)
+    temp=zeros(n)
+    tval=zeros(nboot)
+    if side
+        test=abs(test)
+        pval=0.0
+        for i=1:(nboot*n)
+            if (i%n)!=0
+                temp[i%n]=x[randid[i]]-xbar
+            else
+                temp[n]=x[randid[i]]-xbar
+                tval[div(i, n)]=abs(tmean(temp, tr=tr)./trimse(temp, tr=tr))
+                pval += tval[div(i, n)]>=test? 1/nboot :0.0
+            end
+        end
+        return sort!(tval), pval
+    else
+        for i=1:(nboot*n)
+            if (i%n)!=0
+                temp[i%n]=x[randid[i]]-xbar
+            else
+                temp[n]=x[randid[i]]-xbar
+                tval[div(i, n)]=tmean(temp, tr=tr)./trimse(temp, tr=tr)
+            end
+        end
+        return sort!(tval)
+    end
+end

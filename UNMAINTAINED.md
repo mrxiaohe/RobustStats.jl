@@ -128,3 +128,16 @@ Two examples are shown below to demonstrate the two ways of specifying data:
     Degrees of freedom:   2.00   8.11
     Statistic:            28.990510
     p value:              0.000202
+
+
+#### `trimcibt`
+Compute a (1-α) confidence interval for the trimmed mean using a bootstrap percentile t method. The default amount of trimming is tr=.2. side=true,  indicates the symmetric two-sided method. side=false yields an equal-tailed confidence interval. NOTE: p.value is reported when side=true only.
+
+    julia> trimcibt(x, nboot=5000)
+    Bootstrap .95 confidence interval for the trimmed mean
+    using a bootstrap percentile t method
+
+     Estimate:             1.292180
+     Statistic:            3.469611
+     Confidence interval:  0.292162       2.292199
+     p value:              0.022600

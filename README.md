@@ -268,25 +268,6 @@ Compute a (1-α) confidence interval for a trimmed mean by bootstrap methods.
      p value:              0.086000
 
 
-
-
-####30. `trimcibt()`
-Compute a (1-α) confidence interval for the trimmed mean using a bootstrap percentile t method. The default amount of trimming is tr=.2. side=true,  indicates the symmetric two-sided method. side=false yields an equal-tailed confidence interval. NOTE: p.value is reported when side=true only.
-
-    julia> trimcibt(x, nboot=5000, plotit=true)
-    Bootstrap .95 confidence interval for the trimmed mean
-    using a bootstrap percentile t method
-
-     Estimate:             1.292180
-     Statistic:            3.469611
-     Confidence interval:  0.292162       2.292199
-     p value:              0.022600
-
-![plot](http://imageshack.us/a/img844/1970/34o.png)
-
-
-
-
 #### `pcorb`
 Compute a .95 confidence interval for Pearson's correlation coefficient. This function uses an adjusted percentile bootstrap method that gives good results when the error term is heteroscedastic.
 

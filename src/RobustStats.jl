@@ -39,9 +39,6 @@ export
     trimpb,
     pcorb,
     yuend,
-
-    trimcibt,
-
     bisquareWM,
     huberWM,
     trimean,
