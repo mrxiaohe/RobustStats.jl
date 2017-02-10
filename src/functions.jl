@@ -163,7 +163,7 @@ function pbvar{S <: Real}(x::AbstractArray{S}; beta::Real=0.2)
     counter = 0
     for i = 1:n
         ψ = absdev[i]/ω
-        if (abs(ψ) >= 1.0)
+        if abs(ψ) >= 1.0
             z += 1.0
         else
             z += ψ^2
@@ -189,7 +189,7 @@ function bivar{S <: Real}(x::AbstractArray{S})
     top = bot = 0.0
     for i = 1:n
         u = abs(x[i]-med)./(9.*q.*MAD)
-        if (u<1.0)
+        if u<1.0
             top += n*(x[i]-med)*(x[i]-med)*(1-u*u).^4
             bot += (1-u*u)*(1-5*u*u)
         end
@@ -490,7 +490,7 @@ function sint{S <: Real}(x::AbstractArray{S}, testmedian;
     maxloga = -0.001
     ciA = sint(x, alpha=exp(minloga)).ci[cichoice]-testmedian
     ciB = sint(x, alpha=exp(maxloga)).ci[cichoice]-testmedian
-    if (ciA*ciB) > 0
+    if ciA*ciB > 0
         if ciB*(med-testmedian)<0
             pval = 1.0
         else
