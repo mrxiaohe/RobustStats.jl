@@ -325,7 +325,7 @@ function _slow_scaleS!(x::AbstractArray)
 
     a2 = zeros(eltype(x), N)
     for i = 1:N
-        a2[i] = himed(abs(x-x[i]))
+        a2[i] = himed(abs.(x-x[i]))
     end
 
     # Normalization

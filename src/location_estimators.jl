@@ -19,7 +19,7 @@ deviation of `x` about its median."""
 function bisquareWM{T <: Real}(x::AbstractArray{T}, k::Real, center::Real, tol::Real)
     for _iteration in 1:100
         weights = (1.0-((x-center)/k).^2).^2
-        weights[abs(x-center).>k] = 0.0
+        weights[abs.(x-center).>k] = 0.0
         newcenter = dot(weights, x)/sum(weights)
         if abs(newcenter - center)<tol
             return newcenter
@@ -53,7 +53,7 @@ The answer is found iteratively, revised until it changes by less than `tol`.  I
 deviation of `x` about its median."""
 function huberWM{T <: Real}(x::AbstractArray{T}, k::Real, center::Real, tol::Real)
     for _iteration = 1:100
-        weights = float(k)./abs(x-center)
+        weights = float(k)./abs.(x-center)
         weights[weights.>1.0] = 1.0
         newcenter = dot(weights, x)/sum(weights)
         if abs(newcenter - center) < tol

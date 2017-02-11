@@ -150,7 +150,7 @@ This requires `0 <= beta <= 0.5`. The trimming fraction defaults to `beta=0.2`.
 function pbvar{S <: Real}(x::AbstractArray{S}; beta::Real=0.2)
     const n = length(x)
     med = median(x)
-    absdev = abs(x-med)
+    absdev = abs.(x-med)
     sort!(absdev)
 
     m = floor(Int64, (1-beta)*n+0.5)
@@ -262,7 +262,7 @@ function outbox{S <: Real}(x::AbstractArray{S}; mbox::Bool=false, gval::Real=NaN
         cl = lower_quartile - gval*IQR
         cu = upper_quartile + gval*IQR
     end
-    flag = (x.<cl) | (x.>cu)
+    flag = (x.<cl) .| (x.>cu)
     vec = 1:n
     outid  = vec[flag]
     keepid = vec[!flag]
@@ -546,7 +546,7 @@ function onestep{S <: Real}(x::AbstractArray{S}, bend::Real=1.28)
     MAD = mad(x)
     y = (x-MED)/MAD
     A = sum(hpsi(y, bend))
-    B = sum(abs(y) .<= bend)
+    B = sum(abs.(y) .<= bend)
     return MED + MAD*A/B
 end
 
@@ -625,7 +625,7 @@ function mom!{S <: Real}(x::AbstractArray{S}; bend::Real=2.24)
     const n = length(x)
     med = median!(x)
     MAD = mad(x)
-    not_extreme = abs(x-med) .<= bend*MAD
+    not_extreme = abs.(x-med) .<= bend*MAD
     mean(x[not_extreme])
 end
 
@@ -771,7 +771,7 @@ function yuend{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T};
 end
 
 function pbos{S <: Real}(x::AbstractArray{S}; beta::Real=0.2)
-    temp    = sort( abs( x - median(x) ))
+    temp    = sort( abs.( x - median(x) ))
     nval    = length( x )
     omhatid::Integer = floor( (1 - beta)*nval )
     omhatx  = temp[ omhatid ]
@@ -791,10 +791,10 @@ function pbcor{S <: Real, T <: Real}(x::AbstractArray{S}, y::AbstractArray{T}; b
     if length(y) != nval
         error("x and y do not agree in length.")
     end
-    temp    = sort( abs( x - median(x) ))
+    temp    = sort( abs.( x - median(x) ))
     omhatid::Integer = floor( (1 - beta)*nval )
     omhatx  = temp[ omhatid ]
-    temp    = sort( abs( y - median(y) ))
+    temp    = sort( abs.( y - median(y) ))
     omhaty  = temp[ omhatid ]
     a       = (x .- pbos(x, beta=beta) )./omhatx
     b       = (y .- pbos(y, beta=beta) )./omhaty
