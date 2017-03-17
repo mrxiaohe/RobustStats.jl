@@ -1,74 +1,57 @@
-using DataFrames
-using Rmath
-using Distributions
-using GLM
-using StatsBase
-using Winston
-using DataArrays
+__precompile__()
 
 module RobustStats
+
+using Compat
 using DataFrames
 using Rmath
-using Winston
-using Distributions
 using StatsBase
-using GLM
-using DataArrays
 import Base.show
-import DataFrames.complete_cases
-import DataFrames.deleterows!
 
-
-export 
-    outOutput,
-    idealfOutput,
-    testOutput,
+export
     tmean,
     winval,
     winmean,
     winvar,
+    wincov,
     trimse,
     trimci,
-    stein1,
-    stein2,
     idealf,
     pbvar,
     bivar,
     tauloc,
     tauvar,
     outbox,
-    akerd,
-    akerd_C,
-    rdplot,
-    sint,
+    msmedse,
     binomci,
     acbinomci,
-    near, 
-    msmedse,
-    stein1_tr,
-    stein2_tr,
-    sintv2,
-    seq,
-    cnorm,
+    sint,
     hpsi,
     onestep,
-    onesampb,
+    bootstrapci,
+    bootstrapse,
     mom,
     momci,
+    contam_randn,
     trimpb,
-    trimcibt,
-    indt,
     pcorb,
-    bootse,
-    indirectTest, 
     yuend,
-    t1way
-    
+    bisquareWM,
+    huberWM,
+    trimean,
+    iqrn,
+    shorthrange,
+    shorthrange!,
+    scaleS,
+    scaleS!,
+    scaleQ,
+    scaleQ!
+
+
 include("types.jl")
-include("utilis.jl")
+include("utils.jl")
 include("show.jl")
 include("functions.jl")
-include("data.jl")
+include("location_estimators.jl")
+include("dispersion_estimators.jl")
 end
-
-
